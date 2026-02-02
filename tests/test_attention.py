@@ -1,8 +1,8 @@
 """
-Comprehensive test suite для attention mechanisms package.
-Покрывает все attention implementations, encodings, transformers и utility functions.
+Comprehensive test suite for attention mechanisms package.
+Covers all attention implementations, encodings, transformers and utility functions.
 
-Production-grade testing с performance benchmarks и edge case coverage.
+Production-grade testing with performance benchmarks and edge case coverage.
 """
 
 import pytest
@@ -73,7 +73,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestAttentionMechanisms:
-    """Test suite для core attention mechanisms."""
+    """Test suite for core attention mechanisms."""
     
     @pytest.fixture
     def basic_config(self):
@@ -113,7 +113,7 @@ class TestAttentionMechanisms:
         )
         assert output.shape == test_data['query'].shape
         
-        # Test с attention weights
+        # Test with attention weights
         output, weights = attention(
             test_data['query'],
             need_weights=True
@@ -145,7 +145,7 @@ class TestAttentionMechanisms:
         # Test standard mask
         mask = create_attention_mask(seq_len, causal=False)
         assert mask.shape == (seq_len, seq_len)
-        assert mask.all()  # All True для non-causal
+        assert mask.all()  # All True for non-causal
         
         # Test causal mask
         causal_mask = create_attention_mask(seq_len, causal=True)
@@ -255,7 +255,7 @@ class TestAttentionMechanisms:
         output = causal_attn(test_data['x'])
         assert output.shape == test_data['x'].shape
         
-        # Test с KV cache
+        # Test with KV cache
         output_cached, kv_cache = causal_attn(test_data['x'], use_cache=True)
         assert output_cached.shape == test_data['x'].shape
         assert isinstance(kv_cache, KVCache)
@@ -270,7 +270,7 @@ class TestAttentionMechanisms:
 
 
 class TestPositionalEncodings:
-    """Test suite для positional encodings."""
+    """Test suite for positional encodings."""
     
     @pytest.fixture
     def encoding_config(self):
@@ -290,7 +290,7 @@ class TestPositionalEncodings:
         output = encoding(x)
         assert output.shape == x.shape
         
-        # Test с custom positions
+        # Test with custom positions
         position_ids = torch.arange(seq_len).unsqueeze(0).repeat(batch_size, 1)
         output_custom = encoding(x, position_ids=position_ids)
         assert output_custom.shape == x.shape
@@ -356,7 +356,7 @@ class TestPositionalEncodings:
 
 
 class TestTemporalEncoding:
-    """Test suite для temporal encodings."""
+    """Test suite for temporal encodings."""
     
     @pytest.fixture
     def temporal_config(self):
@@ -419,7 +419,7 @@ class TestTemporalEncoding:
 
 
 class TestTransformerBlocks:
-    """Test suite для transformer components."""
+    """Test suite for transformer components."""
     
     @pytest.fixture
     def transformer_config(self):
@@ -442,7 +442,7 @@ class TestTransformerBlocks:
         output = encoder(x)
         assert output.shape == x.shape
         
-        # Test с attention weights
+        # Test with attention weights
         output, weights = encoder(x, need_weights=True)
         assert output.shape == x.shape
         assert weights.shape == (batch_size, transformer_config.num_heads, seq_len, seq_len)
@@ -458,7 +458,7 @@ class TestTransformerBlocks:
         output = decoder(target_x, encoder_output)
         assert output.shape == target_x.shape
         
-        # Test с attention weights
+        # Test with attention weights
         output, weights = decoder(target_x, encoder_output, need_weights=True)
         assert output.shape == target_x.shape
         assert 'self_attention' in weights
@@ -507,7 +507,7 @@ class TestTransformerBlocks:
 
 
 class TestTradingTransformer:
-    """Test suite для trading transformer."""
+    """Test suite for trading transformer."""
     
     @pytest.fixture
     def trading_config(self):
@@ -565,7 +565,7 @@ class TestTradingTransformer:
 
 
 class TestCryptoModels:
-    """Test suite для crypto-specific models."""
+    """Test suite for crypto-specific models."""
     
     @pytest.fixture
     def model_config(self):
@@ -670,7 +670,7 @@ class TestCryptoModels:
 
 
 class TestUtilities:
-    """Test suite для utility functions."""
+    """Test suite for utility functions."""
     
     def test_attention_analyzer(self):
         """Test attention analysis utilities."""
@@ -735,7 +735,7 @@ class TestUtilities:
 
 
 class TestPerformance:
-    """Performance и benchmark tests."""
+    """Performance and benchmark tests."""
     
     def test_attention_performance_comparison(self):
         """Compare performance of different attention implementations."""
@@ -747,7 +747,7 @@ class TestPerformance:
             'crypto': CryptoMultiHeadAttention(AttentionConfig(d_model=d_model, num_heads=num_heads), use_volume_weighting=True),
         }
         
-        # Add flash attention если available
+        # Add flash attention if available
         try:
             implementations['flash'] = MultiHeadAttention(
                 AttentionConfig(d_model=d_model, num_heads=num_heads, use_flash_attn=True)
@@ -769,7 +769,7 @@ class TestPerformance:
     
     @pytest.mark.slow
     def test_memory_scaling(self):
-        """Test memory usage scaling с sequence length."""
+        """Test memory usage scaling with sequence length."""
         d_model, num_heads = 256, 8
         attention = MultiHeadAttention(AttentionConfig(d_model=d_model, num_heads=num_heads))
         
@@ -793,20 +793,20 @@ class TestPerformance:
                 torch.cuda.empty_cache()
         
         if memory_usages:
-            # Memory should scale roughly quadratically с sequence length
+            # Memory should scale roughly quadratically with sequence length
             assert len(memory_usages) == len(sequence_lengths)
             logger.info(f"Memory scaling: {dict(zip(sequence_lengths, memory_usages))}")
 
 
 class TestEdgeCases:
-    """Test edge cases и error handling."""
+    """Test edge cases and error handling."""
     
     def test_empty_sequences(self):
         """Test handling of empty sequences."""
         config = AttentionConfig(d_model=256, num_heads=8)
         attention = MultiHeadAttention(config)
         
-        # Zero-length sequence should raise error или handle gracefully
+        # Zero-length sequence should raise error or handle gracefully
         empty_input = torch.randn(1, 0, 256)
         
         with pytest.raises((RuntimeError, ValueError)):
@@ -831,7 +831,7 @@ class TestEdgeCases:
             _ = MultiHeadAttention(config)
     
     def test_numerical_stability(self):
-        """Test numerical stability с extreme values."""
+        """Test numerical stability with extreme values."""
         config = AttentionConfig(d_model=256, num_heads=8)
         attention = MultiHeadAttention(config)
         
@@ -851,7 +851,7 @@ class TestEdgeCases:
 # Pytest configuration
 @pytest.fixture(autouse=True)
 def setup_logging():
-    """Setup logging для tests."""
+    """Setup logging for tests."""
     logging.basicConfig(level=logging.INFO)
 
 

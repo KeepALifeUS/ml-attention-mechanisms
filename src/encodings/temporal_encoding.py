@@ -1,8 +1,8 @@
 """
-Temporal Encoding специализированные для временных рядов в крипто-торговле.
-Учитывает цикличность рынков, временные зоны и паттерны торговой активности.
+Temporal Encoding specialized for temporal рядов in crypto trading.
+Accounts for market cyclicality, time zones, and trading activity patterns.
 
-Production temporal encodings для real-time trading systems.
+Production temporal encodings for real-time trading systems.
 """
 
 import math
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TemporalEncodingConfig:
-    """Конфигурация для temporal encoding."""
+    """Configuration for temporal encoding."""
     d_model: int = 512
     max_seq_len: int = 10000
     dropout: float = 0.1
@@ -40,11 +40,11 @@ class TemporalEncodingConfig:
     month_cycles: int = 12        # Months in year
     
     # Trading session parameters
-    session_overlap_penalty: float = 0.8  # Penalty для overlapping sessions
-    weekend_penalty: float = 0.5          # Penalty для weekend trading
+    session_overlap_penalty: float = 0.8  # Penalty for overlapping sessions
+    weekend_penalty: float = 0.5          # Penalty for weekend trading
     
     # Seasonal patterns
-    seasonal_periods: List[int] = None     # Custom seasonal periods в hours
+    seasonal_periods: List[int] = None     # Custom seasonal periods in hours
     seasonal_strength: float = 0.3        # Strength of seasonal effects
     
     # Crypto-specific patterns
@@ -59,18 +59,18 @@ class TemporalEncodingConfig:
     
     def __post_init__(self):
         if self.seasonal_periods is None:
-            # Default seasonal periods: daily, weekly, monthly (в hours)
+            # Default seasonal periods: daily, weekly, monthly (in hours)
             self.seasonal_periods = [24, 168, 720]
 
 
 class CyclicalTimeEncoding(nn.Module):
-    """Cyclical encoding для различных временных паттернов."""
+    """Cyclical encoding for various temporal patterns."""
     
     def __init__(self, config: TemporalEncodingConfig):
         super().__init__()
         self.config = config
         
-        # Cyclical projections для каждого временного цикла
+        # Cyclical projections for each temporal цикла
         if config.use_cyclical_encoding:
             self.minute_proj = nn.Linear(2, config.d_model // 16)  # sin, cos
             self.hour_proj = nn.Linear(2, config.d_model // 8)
@@ -203,7 +203,7 @@ class CyclicalTimeEncoding(nn.Module):
 
 
 class MarketSessionEncoding(nn.Module):
-    """Market session aware encoding для crypto trading."""
+    """Market session aware encoding for crypto trading."""
     
     def __init__(self, config: TemporalEncodingConfig):
         super().__init__()
@@ -249,7 +249,7 @@ class MarketSessionEncoding(nn.Module):
         # Determine market sessions
         sessions = self._get_market_sessions(hours)
         
-        # Session overlaps (крипто торгуется 24/7, но есть более активные периоды)
+        # Session overlaps (crypto is traded 24/7, but there is more активные periods)
         overlaps = self._get_session_overlaps(hours)
         
         # Weekend detection
@@ -274,14 +274,14 @@ class MarketSessionEncoding(nn.Module):
         return session_features
     
     def _get_market_sessions(self, hours: torch.Tensor) -> torch.Tensor:
-        """Get primary market session для каждого hour."""
+        """Get primary market session for each hour."""
         # Asian: 0-8, European: 8-16, US: 16-24
         sessions = (hours // 8) % 3
         return sessions.long()
     
     def _get_session_overlaps(self, hours: torch.Tensor) -> torch.Tensor:
         """Get number of overlapping active sessions."""
-        # Simplified: assume некоторые hours have multiple active markets
+        # Simplified: assume some hours have multiple active markets
         overlaps = torch.zeros_like(hours)
         
         # Peak overlaps: European open (8-9), US open (16-17), Asia-Europe (7-8)
@@ -293,7 +293,7 @@ class MarketSessionEncoding(nn.Module):
 
 
 class SeasonalityEncoding(nn.Module):
-    """Seasonality patterns для crypto markets."""
+    """Seasonality patterns for crypto markets."""
     
     def __init__(self, config: TemporalEncodingConfig):
         super().__init__()
@@ -357,7 +357,7 @@ class SeasonalityEncoding(nn.Module):
 
 class CryptoTemporalEncoding(nn.Module):
     """
-    Comprehensive temporal encoding для crypto trading.
+    Comprehensive temporal encoding for crypto trading.
     
     Features:
     - Cyclical time patterns
@@ -380,7 +380,7 @@ class CryptoTemporalEncoding(nn.Module):
         if config.use_seasonal_patterns:
             self.seasonality_encoding = SeasonalityEncoding(config)
         
-        # Volume и volatility cycle encodings
+        # Volume and volatility cycle encodings
         if config.use_volume_cycles:
             self.volume_cycle_proj = nn.Linear(2, config.d_model // 16)
             
@@ -415,7 +415,7 @@ class CryptoTemporalEncoding(nn.Module):
         """
         encoding_components = []
         
-        # Cyclical encoding (базовый компонент)
+        # Cyclical encoding (base component)
         cyclical_enc = self.cyclical_encoding(timestamps)
         encoding_components.append(cyclical_enc)
         
@@ -488,14 +488,14 @@ class CryptoTemporalEncoding(nn.Module):
         
         # Combine all encoding components
         if len(encoding_components) > 1:
-            # Stack и average components
+            # Stack and average components
             stacked_encodings = torch.stack(encoding_components, dim=0)
             combined_encoding = stacked_encodings.mean(dim=0)
         else:
             combined_encoding = encoding_components[0]
         
         # Final processing
-        # Concatenate с original cyclical encoding для richer representation
+        # Concatenate with original cyclical encoding for richer representation
         enhanced_encoding = torch.cat([cyclical_enc, combined_encoding], dim=-1)
         final_encoding = self.final_projection(enhanced_encoding)
         final_encoding = self.layer_norm(final_encoding)
@@ -503,7 +503,7 @@ class CryptoTemporalEncoding(nn.Module):
         return self.dropout(final_encoding)
     
     def _create_cycle_features(self, phase: torch.Tensor) -> torch.Tensor:
-        """Create sin/cos features от phase values."""
+        """Create sin/cos features from phase values."""
         sin_comp = torch.sin(2 * math.pi * phase).unsqueeze(-1)
         cos_comp = torch.cos(2 * math.pi * phase).unsqueeze(-1)
         return torch.cat([sin_comp, cos_comp], dim=-1)
@@ -511,7 +511,7 @@ class CryptoTemporalEncoding(nn.Module):
 
 def create_temporal_encoding(config: TemporalEncodingConfig) -> nn.Module:
     """
-    Factory function для создания temporal encoding.
+    Factory function for creation temporal encoding.
     
     Args:
         config: Temporal encoding configuration
@@ -544,7 +544,7 @@ if __name__ == "__main__":
     timestamps = torch.arange(start_timestamp, start_timestamp + seq_len * 60, 60)
     timestamps = timestamps.unsqueeze(0).repeat(batch_size, 1)
     
-    # Mock volume и volatility data
+    # Mock volume and volatility data
     volume_data = torch.rand(batch_size, seq_len) * 1000 + 100
     volatility_data = torch.rand(batch_size, seq_len) * 0.1 + 0.01
     
@@ -584,8 +584,8 @@ if __name__ == "__main__":
     print(f"Session only: {sum(p.numel() for p in session_enc.parameters())}")
     print(f"Seasonality only: {sum(p.numel() for p in seasonality_enc.parameters())}")
     
-    # Test с различными временными периодами
-    print(f"\nTesting различные временные периоды:")
+    # Test with various временными периодами
+    print(f"\nTesting various temporal periods:")
     
     # Intraday (5-minute data)
     intraday_timestamps = torch.arange(start_timestamp, start_timestamp + 288 * 300, 300)  # 1 day, 5-min intervals

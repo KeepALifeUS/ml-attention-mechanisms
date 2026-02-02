@@ -1,8 +1,8 @@
 """
-Attention utilities для analysis, optimization и debugging attention mechanisms.
-Включает performance profiling, attention pattern analysis и memory optimization.
+Attention utilities for analysis, optimization and debugging attention mechanisms.
+Includes performance profiling, attention pattern analysis and memory optimization.
 
-Production utilities для attention mechanism monitoring и optimization.
+Production utilities for attention mechanism monitoring and optimization.
 """
 
 import math
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class AttentionStats:
-    """Statistics об attention patterns."""
+    """Statistics about attention patterns."""
     entropy: float
     sparsity: float
     max_attention: float
@@ -35,7 +35,7 @@ class AttentionStats:
 
 class AttentionAnalyzer:
     """
-    Analyzer для attention patterns и performance.
+    Analyzer for attention patterns and performance.
     
     Features:
     - Attention pattern analysis
@@ -59,10 +59,10 @@ class AttentionAnalyzer:
         
         Args:
             attention_weights: Attention weights [batch, num_heads, seq_len, seq_len]
-            head_dim: Head dimension (для memory calculation)
+            head_dim: Head dimension (for memory calculation)
             
         Returns:
-            AttentionStats object с analysis results
+            AttentionStats object with analysis results
         """
         device = attention_weights.device
         batch_size, num_heads, seq_len, _ = attention_weights.shape
@@ -103,7 +103,7 @@ class AttentionAnalyzer:
     
     def _calculate_entropy(self, attention_weights: torch.Tensor) -> float:
         """Calculate attention entropy."""
-        # Add small epsilon для numerical stability
+        # Add small epsilon for numerical stability
         eps = 1e-8
         log_weights = torch.log(attention_weights + eps)
         entropy = -torch.sum(attention_weights * log_weights, dim=-1).mean().item()
@@ -170,11 +170,11 @@ class AttentionAnalyzer:
         attention_weights: torch.Tensor,
         head_dim: Optional[int] = None
     ) -> float:
-        """Estimate memory usage в MB."""
-        # Base memory для attention weights
+        """Estimate memory usage in MB."""
+        # Base memory for attention weights
         weights_memory = attention_weights.numel() * 4  # 4 bytes per float32
         
-        # Additional memory для Q, K, V если head_dim provided
+        # Additional memory for Q, K, V if head_dim provided
         if head_dim is not None:
             batch_size, num_heads, seq_len, _ = attention_weights.shape
             qkv_memory = 3 * batch_size * num_heads * seq_len * head_dim * 4  # Q, K, V
@@ -182,7 +182,7 @@ class AttentionAnalyzer:
         else:
             total_memory = weights_memory
         
-        return total_memory / (1024 * 1024)  # Convert к MB
+        return total_memory / (1024 * 1024)  # Convert to MB
     
     def profile_attention_layer(
         self,
@@ -196,7 +196,7 @@ class AttentionAnalyzer:
         
         Args:
             attention_layer: Attention module to profile
-            input_tensor: Input tensor для profiling
+            input_tensor: Input tensor for profiling
             num_runs: Number of profiling runs
             warmup_runs: Number of warmup runs
             
@@ -232,7 +232,7 @@ class AttentionAnalyzer:
                 torch.cuda.synchronize()
             
             end_time = time.perf_counter()
-            forward_times.append((end_time - start_time) * 1000)  # Convert к ms
+            forward_times.append((end_time - start_time) * 1000)  # Convert to ms
             
             if device.type == 'cuda':
                 peak_memory = torch.cuda.max_memory_allocated()
@@ -257,7 +257,7 @@ class AttentionAnalyzer:
 
 class AttentionMemoryOptimizer:
     """
-    Memory optimization utilities для attention mechanisms.
+    Memory optimization utilities for attention mechanisms.
     
     Features:
     - Gradient checkpointing
@@ -275,7 +275,7 @@ class AttentionMemoryOptimizer:
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        Compute attention в chunks to save memory.
+        Compute attention in chunks to save memory.
         
         Args:
             query: Query tensor [batch, heads, seq_len, head_dim]
@@ -301,19 +301,19 @@ class AttentionMemoryOptimizer:
             for j in range(0, seq_len, chunk_size):
                 end_j = min(j + chunk_size, seq_len)
                 
-                # Chunk key и value
+                # Chunk key and value
                 k_chunk = key[:, :, j:end_j, :]
                 v_chunk = value[:, :, j:end_j, :]
                 
                 # Compute attention scores
                 scores = torch.matmul(q_chunk, k_chunk.transpose(-2, -1)) * scale
                 
-                # Apply mask если provided
+                # Apply mask if provided
                 if attention_mask is not None:
                     mask_chunk = attention_mask[:, :, i:end_i, j:end_j]
                     scores = scores.masked_fill(mask_chunk == 0, float('-inf'))
                 
-                # Apply softmax и compute output
+                # Apply softmax and compute output
                 attn_weights = F.softmax(scores, dim=-1)
                 chunk_output = torch.matmul(attn_weights, v_chunk)
                 
@@ -337,12 +337,12 @@ class AttentionMemoryOptimizer:
         **kwargs
     ) -> torch.Tensor:
         """
-        Apply gradient checkpointing к attention function.
+        Apply gradient checkpointing to attention function.
         
         Args:
             attention_fn: Attention function to checkpoint
-            *args: Arguments для attention function
-            **kwargs: Keyword arguments для attention function
+            *args: Arguments for attention function
+            **kwargs: Keyword arguments for attention function
         """
         return torch.utils.checkpoint.checkpoint(attention_fn, *args, **kwargs)
     
@@ -358,7 +358,7 @@ class AttentionMemoryOptimizer:
         
         Args:
             input_tensor: Input tensor [batch, seq_len, d_model]
-            max_memory_mb: Maximum memory usage в MB
+            max_memory_mb: Maximum memory usage in MB
             head_dim: Attention head dimension
             num_heads: Number of attention heads
             
@@ -367,7 +367,7 @@ class AttentionMemoryOptimizer:
         """
         batch_size, seq_len, d_model = input_tensor.shape
         
-        # Estimate memory usage для attention
+        # Estimate memory usage for attention
         attention_memory = batch_size * num_heads * seq_len * seq_len * 4  # bytes
         qkv_memory = 3 * batch_size * seq_len * d_model * 4  # Q, K, V
         total_memory_mb = (attention_memory + qkv_memory) / 1024 / 1024
@@ -400,7 +400,7 @@ class AttentionMemoryOptimizer:
 
 class AttentionPatternVisualizer:
     """
-    Visualization utilities для attention patterns.
+    Visualization utilities for attention patterns.
     
     Features:
     - Attention heatmap generation
@@ -415,14 +415,14 @@ class AttentionPatternVisualizer:
         layer_names: Optional[List[str]] = None
     ) -> Dict[str, np.ndarray]:
         """
-        Extract attention patterns для visualization.
+        Extract attention patterns for visualization.
         
         Args:
-            attention_weights: Attention weights tensor или list of tensors
+            attention_weights: Attention weights tensor or list of tensors
             layer_names: Names of attention layers
             
         Returns:
-            Dictionary с attention patterns
+            Dictionary with attention patterns
         """
         patterns = {}
         
@@ -436,7 +436,7 @@ class AttentionPatternVisualizer:
             if weights is None:
                 continue
             
-            # Convert к numpy
+            # Convert to numpy
             if isinstance(weights, torch.Tensor):
                 weights_np = weights.detach().cpu().numpy()
             else:
@@ -455,13 +455,13 @@ class AttentionPatternVisualizer:
         attention_patterns: Dict[str, np.ndarray]
     ) -> Dict[str, Dict[str, float]]:
         """
-        Compute statistics для attention patterns.
+        Compute statistics for attention patterns.
         
         Args:
-            attention_patterns: Dictionary с attention patterns
+            attention_patterns: Dictionary with attention patterns
             
         Returns:
-            Dictionary с statistics для each layer
+            Dictionary with statistics for each layer
         """
         stats = {}
         
@@ -479,9 +479,9 @@ class AttentionPatternVisualizer:
             sparsity = np.mean(pattern < threshold)
             layer_stats['sparsity'] = float(sparsity)
             
-            # Entropy (если pattern is probability distribution)
+            # Entropy (if pattern is probability distribution)
             if pattern.ndim >= 2:
-                # Compute entropy для each head
+                # Compute entropy for each head
                 entropies = []
                 for head_idx in range(pattern.shape[0]):
                     head_pattern = pattern[head_idx]
@@ -500,7 +500,7 @@ class AttentionPatternVisualizer:
 
 class AttentionDebugger:
     """
-    Debugging utilities для attention mechanisms.
+    Debugging utilities for attention mechanisms.
     
     Features:
     - NaN/Inf detection
@@ -514,12 +514,12 @@ class AttentionDebugger:
         self.hooks = []
     
     def register_attention_hooks(self, model: nn.Module):
-        """Register hooks для attention debugging."""
+        """Register hooks for attention debugging."""
         
         def attention_hook(module, input, output):
             module_name = f"{module.__class__.__name__}_{id(module)}"
             
-            # Check для NaN/Inf
+            # Check for NaN/Inf
             if isinstance(output, torch.Tensor):
                 has_nan = torch.isnan(output).any().item()
                 has_inf = torch.isinf(output).any().item()
@@ -538,11 +538,11 @@ class AttentionDebugger:
             }
             
             if has_nan:
-                logger.warning(f"NaN detected в {module_name}")
+                logger.warning(f"NaN detected in {module_name}")
             if has_inf:
-                logger.warning(f"Inf detected в {module_name}")
+                logger.warning(f"Inf detected in {module_name}")
         
-        # Register hooks для attention modules
+        # Register hooks for attention modules
         for name, module in model.named_modules():
             if any(attn_name in name.lower() for attn_name in ['attention', 'attn']):
                 hook = module.register_forward_hook(attention_hook)
@@ -571,7 +571,7 @@ class AttentionDebugger:
         tolerance: float = 1e-6
     ) -> Dict[str, bool]:
         """
-        Validate attention weights для common issues.
+        Validate attention weights for common issues.
         
         Args:
             attention_weights: Attention weights tensor
@@ -583,19 +583,19 @@ class AttentionDebugger:
         validation = {}
         
         with torch.no_grad():
-            # Check для NaN/Inf
+            # Check for NaN/Inf
             validation['has_nan'] = torch.isnan(attention_weights).any().item()
             validation['has_inf'] = torch.isinf(attention_weights).any().item()
             
-            # Check если weights sum to 1 (approximately)
+            # Check if weights sum to 1 (approximately)
             weight_sums = torch.sum(attention_weights, dim=-1)
             sum_diff = torch.abs(weight_sums - 1.0)
             validation['weights_sum_to_one'] = (sum_diff < tolerance).all().item()
             
-            # Check для negative weights
+            # Check for negative weights
             validation['has_negative_weights'] = (attention_weights < 0).any().item()
             
-            # Check для extremely small или large weights
+            # Check for extremely small or large weights
             validation['has_extreme_weights'] = (
                 (attention_weights > 1.0).any().item() or 
                 (attention_weights < 1e-8).any().item()
@@ -619,7 +619,7 @@ def benchmark_attention_implementations(
     Benchmark different attention implementations.
     
     Args:
-        implementations: Dictionary с attention implementations
+        implementations: Dictionary with attention implementations
         input_tensor: Test input tensor
         num_runs: Number of benchmark runs
         
@@ -638,16 +638,16 @@ def benchmark_attention_implementations(
                 implementation, input_tensor, num_runs=num_runs
             )
             
-            # Test forward pass для additional analysis
+            # Test forward pass for additional analysis
             with torch.no_grad():
                 output = implementation(input_tensor)
                 
-            # Extract attention weights если available
+            # Extract attention weights if available
             attention_weights = None
             if hasattr(implementation, 'get_attention_weights'):
                 attention_weights = implementation.get_attention_weights()
             
-            # Analyze attention patterns если weights available
+            # Analyze attention patterns if weights available
             if attention_weights is not None:
                 attention_stats = analyzer.analyze_attention_weights(attention_weights)
                 perf_stats.update({

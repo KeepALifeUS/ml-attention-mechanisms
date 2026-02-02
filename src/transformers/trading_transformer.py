@@ -1,8 +1,8 @@
 """
-Trading Transformer архитектура специально разработанная для крипто-торговых задач.
-Объединяет attention mechanisms с domain-specific optimizations для financial time series.
+Trading Transformer architecture специально разработанная for crypto trading tasks.
+Combines attention mechanisms with domain-specific optimizations for financial time series.
 
-Production trading transformer с real-time inference и risk management.
+Production trading transformer with real-time inference and risk management.
 """
 
 import math
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TradingTransformerConfig:
-    """Конфигурация для Trading Transformer."""
+    """Configuration for Trading Transformer."""
     # Model architecture
     d_model: int = 512
     num_heads: int = 8
@@ -37,14 +37,14 @@ class TradingTransformerConfig:
     dropout: float = 0.1
     
     # Input specifications
-    vocab_size: Optional[int] = None  # Для tokenized inputs
+    vocab_size: Optional[int] = None  # For tokenized inputs
     max_seq_len: int = 2048
     input_features: int = 100  # Number of input features (OHLCV, indicators, etc.)
     
     # Output specifications
     output_dim: int = 1  # Prediction dimension (price, return, signal)
     output_type: str = "regression"  # "regression", "classification", "sequence"
-    num_classes: Optional[int] = None  # Для classification
+    num_classes: Optional[int] = None  # For classification
     
     # Trading-specific features
     use_multi_timeframe: bool = True
@@ -62,7 +62,7 @@ class TradingTransformerConfig:
     # Advanced features
     use_temporal_attention: bool = True
     use_cross_modal_attention: bool = True
-    use_causal_inference: bool = False  # Для autoregressive generation
+    use_causal_inference: bool = False  # For autoregressive generation
     
     # Positional encoding
     pos_encoding_type: str = "crypto"  # "sinusoidal", "learned", "crypto", "temporal"
@@ -70,7 +70,7 @@ class TradingTransformerConfig:
     # Optimization
     use_gradient_checkpointing: bool = False
     use_mixed_precision: bool = True
-    use_layer_scale: bool = False  # Layer scaling для training stability
+    use_layer_scale: bool = False  # Layer scaling for training stability
     
     # Regularization
     stochastic_depth_rate: float = 0.0
@@ -86,7 +86,7 @@ class TradingTransformerConfig:
 
 
 class InputEmbedding(nn.Module):
-    """Input embedding layer для trading data."""
+    """Input embedding layer for trading data."""
     
     def __init__(self, config: TradingTransformerConfig):
         super().__init__()
@@ -119,7 +119,7 @@ class InputEmbedding(nn.Module):
         else:
             self.projection = nn.Identity()
         
-        # Normalization и dropout
+        # Normalization and dropout
         self.layer_norm = nn.LayerNorm(config.d_model)
         self.dropout = nn.Dropout(config.dropout)
     
@@ -169,7 +169,7 @@ class InputEmbedding(nn.Module):
         else:
             embedded = embeddings[0]
         
-        # Normalization и dropout
+        # Normalization and dropout
         embedded = self.layer_norm(embedded)
         embedded = self.dropout(embedded)
         
@@ -212,7 +212,7 @@ class MarketRegimeDetector(nn.Module):
     
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Detect market regime и apply regime-specific processing.
+        Detect market regime and apply regime-specific processing.
         
         Args:
             x: Input features [batch_size, seq_len, d_model]
@@ -231,7 +231,7 @@ class MarketRegimeDetector(nn.Module):
         # Apply regime-specific transformations
         regime_adapted = torch.zeros_like(x)
         for regime_id in range(self.config.num_regimes):
-            # Mask для current regime
+            # Mask for current regime
             regime_mask = (regime_ids == regime_id).unsqueeze(-1).float()
             
             # Apply regime-specific transform
@@ -241,7 +241,7 @@ class MarketRegimeDetector(nn.Module):
             regime_weight = regime_probs[:, :, regime_id:regime_id+1]
             regime_adapted += transformed * regime_mask * regime_weight
         
-        # Blend с original features
+        # Blend with original features
         processed_x = x + regime_adapted * 0.2  # Moderate влияние
         
         # Estimate confidence
@@ -251,7 +251,7 @@ class MarketRegimeDetector(nn.Module):
 
 
 class RiskAwareHead(nn.Module):
-    """Risk-aware output head для trading predictions."""
+    """Risk-aware output head for trading predictions."""
     
     def __init__(self, config: TradingTransformerConfig):
         super().__init__()
@@ -284,7 +284,7 @@ class RiskAwareHead(nn.Module):
             
             # Risk-adjusted prediction
             self.risk_adjustment = nn.Sequential(
-                nn.Linear(config.d_model + 1, config.d_model),  # +1 для risk score
+                nn.Linear(config.d_model + 1, config.d_model),  # +1 for risk score
                 nn.Tanh()
             )
     
@@ -296,7 +296,7 @@ class RiskAwareHead(nn.Module):
             x: Features [batch_size, seq_len, d_model]
             
         Returns:
-            outputs: Dictionary с predictions, risk scores, uncertainty
+            outputs: Dictionary with predictions, risk scores, uncertainty
         """
         outputs = {}
         
@@ -305,7 +305,7 @@ class RiskAwareHead(nn.Module):
             # For sequence output, return full hidden states
             outputs['predictions'] = self.prediction_head(x)
         else:
-            # For regression/classification, use last timestep или global pooling
+            # For regression/classification, use last timestep or global pooling
             if x.dim() == 3:  # [batch, seq, dim]
                 # Use last timestep
                 last_hidden = x[:, -1, :]
@@ -317,7 +317,7 @@ class RiskAwareHead(nn.Module):
         # Risk management
         if self.config.use_risk_management:
             if x.dim() == 3:
-                risk_input = x[:, -1, :]  # Last timestep для risk
+                risk_input = x[:, -1, :]  # Last timestep for risk
             else:
                 risk_input = x
             
@@ -347,7 +347,7 @@ class TradingTransformer(nn.Module):
     
     Features:
     - Multi-modal input processing
-    - Temporal и cross-attention mechanisms
+    - Temporal and cross-attention mechanisms
     - Market regime detection
     - Risk-aware predictions
     - Multi-timeframe processing
@@ -422,7 +422,7 @@ class TradingTransformer(nn.Module):
                 cross_attention_config, modalities
             )
         
-        # Decoder layers (для autoregressive tasks)
+        # Decoder layers (for autoregressive tasks)
         if config.use_causal_inference:
             self.decoder_layers = nn.ModuleList([
                 TransformerDecoderBlock(encoder_config)
@@ -435,7 +435,7 @@ class TradingTransformer(nn.Module):
         # Layer normalization
         self.final_norm = nn.LayerNorm(config.d_model)
         
-        # Layer scaling для training stability
+        # Layer scaling for training stability
         if config.use_layer_scale:
             self.layer_scales = nn.ParameterList([
                 nn.Parameter(torch.ones(config.d_model) * 0.1)
@@ -464,7 +464,7 @@ class TradingTransformer(nn.Module):
     
     def enable_mixed_precision(self):
         """Enable mixed precision training."""
-        # This would be handled by training loop с GradScaler
+        # This would be handled by training loop with GradScaler
         pass
     
     def forward(
@@ -475,7 +475,7 @@ class TradingTransformer(nn.Module):
         timeframe_ids: Optional[torch.Tensor] = None,
         modality_data: Optional[Dict[str, torch.Tensor]] = None,
         attention_mask: Optional[torch.Tensor] = None,
-        target_sequence: Optional[torch.Tensor] = None,  # Для decoder
+        target_sequence: Optional[torch.Tensor] = None,  # For decoder
         need_attention_weights: bool = False
     ) -> Dict[str, torch.Tensor]:
         """
@@ -488,7 +488,7 @@ class TradingTransformer(nn.Module):
             timeframe_ids: Timeframe identifiers [batch_size, seq_len]
             modality_data: Multi-modal data dictionary
             attention_mask: Attention mask
-            target_sequence: Target sequence для decoder
+            target_sequence: Target sequence for decoder
             need_attention_weights: Return attention weights
         """
         outputs = {}
@@ -558,7 +558,7 @@ class TradingTransformer(nn.Module):
         
         # Cross-modal attention
         if self.config.use_cross_modal_attention and modality_data:
-            # Prepare modality data с current hidden states as base
+            # Prepare modality data with current hidden states as base
             enhanced_modality_data = {**modality_data, 'base': hidden_states}
             
             cross_modal_output = self.cross_modal_attention(
@@ -572,7 +572,7 @@ class TradingTransformer(nn.Module):
             else:
                 hidden_states = cross_modal_output
         
-        # Decoder (для autoregressive tasks)
+        # Decoder (for autoregressive tasks)
         if self.config.use_causal_inference and target_sequence is not None:
             decoder_hidden = target_sequence
             
@@ -591,7 +591,7 @@ class TradingTransformer(nn.Module):
                 else:
                     decoder_hidden = decoder_output
             
-            # Use decoder output для predictions
+            # Use decoder output for predictions
             final_features = self.final_norm(decoder_hidden)
         else:
             # Use encoder output
@@ -601,7 +601,7 @@ class TradingTransformer(nn.Module):
         prediction_outputs = self.output_head(final_features)
         outputs.update(prediction_outputs)
         
-        # Hidden states для analysis
+        # Hidden states for analysis
         outputs['hidden_states'] = final_features
         
         if need_attention_weights:
@@ -616,7 +616,7 @@ class TradingTransformer(nn.Module):
         **kwargs
     ) -> torch.Tensor:
         """
-        Predict following timesteps (для autoregressive generation).
+        Predict following timesteps (for autoregressive generation).
         
         Args:
             x: Input sequence [batch_size, seq_len, input_features]
@@ -643,7 +643,7 @@ class TradingTransformer(nn.Module):
                 
                 # Update input for next prediction
                 if self.config.output_type == "sequence":
-                    # Append prediction к sequence
+                    # Append prediction to sequence
                     current_input = torch.cat([current_input[:, 1:, :], next_pred], dim=1)
                 else:
                     # For non-sequence, this needs domain-specific logic
@@ -652,7 +652,7 @@ class TradingTransformer(nn.Module):
         return torch.cat(predictions, dim=1) if predictions else None
     
     def get_attention_maps(self, x: torch.Tensor, **kwargs) -> Dict[str, torch.Tensor]:
-        """Get attention maps для visualization."""
+        """Get attention maps for visualization."""
         outputs = self.forward(x, need_attention_weights=True, **kwargs)
         return outputs.get('attention_weights', {})
 
@@ -663,7 +663,7 @@ def create_trading_transformer(
     **kwargs
 ) -> TradingTransformer:
     """
-    Factory function для создания trading transformer.
+    Factory function for creation trading transformer.
     
     Args:
         input_features: Number of input features
@@ -730,7 +730,7 @@ if __name__ == "__main__":
         else:
             print(f"  {key}: {type(value)}")
     
-    # Test с attention weights
+    # Test with attention weights
     print(f"\nTesting attention weights:")
     attention_outputs = model(
         x=x,

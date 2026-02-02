@@ -1,8 +1,8 @@
 """
-Positional Encoding реализации для transformer архитектур в крипто-торговле.
-Включает sinusoidal, learned, relative и другие варианты позиционного кодирования.
+Positional Encoding implementations for transformer архитектур in crypto trading.
+Includes sinusoidal, learned, relative and other варианты positional encoding.
 
-Production-ready positional encodings с efficiency optimizations.
+Production-ready positional encodings with efficiency optimizations.
 """
 
 import math
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PositionalEncodingConfig:
-    """Конфигурация для различных типов positional encoding."""
+    """Configuration for various типов positional encoding."""
     d_model: int = 512
     max_seq_len: int = 10000
     dropout: float = 0.1
@@ -55,13 +55,13 @@ class PositionalEncodingConfig:
 
 class SinusoidalPositionalEncoding(nn.Module):
     """
-    Sinusoidal positional encoding из оригинальной Transformer статьи.
+    Sinusoidal positional encoding from original Transformer paper.
     
     Features:
     - Standard sinusoidal patterns
     - Configurable frequency base
     - Temperature scaling
-    - Frequency modulation для crypto patterns
+    - Frequency modulation for crypto patterns
     """
     
     def __init__(self, config: PositionalEncodingConfig):
@@ -78,7 +78,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         
         self.register_buffer('pe', pe)
         
-        # Frequency modulation для crypto patterns
+        # Frequency modulation for crypto patterns
         if config.use_frequency_modulation:
             self.freq_modulation = self._create_frequency_modulation(
                 config.frequency_bands, config.d_model
@@ -92,11 +92,11 @@ class SinusoidalPositionalEncoding(nn.Module):
         d_model: int, 
         base: float = 10000.0
     ) -> torch.Tensor:
-        """Создание sinusoidal positional encoding matrix."""
+        """Create sinusoidal positional encoding matrix."""
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         
-        # Compute div_term для frequency scaling
+        # Compute div_term for frequency scaling
         div_term = torch.exp(
             torch.arange(0, d_model, 2).float() * (-math.log(base) / d_model)
         )
@@ -108,7 +108,7 @@ class SinusoidalPositionalEncoding(nn.Module):
         return pe
     
     def _create_frequency_modulation(self, num_bands: int, d_model: int) -> nn.Module:
-        """Create frequency modulation для crypto-specific patterns."""
+        """Create frequency modulation for crypto-specific patterns."""
         return nn.Sequential(
             nn.Linear(num_bands, d_model // 4),
             nn.ReLU(),
@@ -134,13 +134,13 @@ class SinusoidalPositionalEncoding(nn.Module):
             # Use custom positions
             positions = position_ids.unsqueeze(-1).float()  # [B, L, 1]
             
-            # Compute encoding для custom positions
+            # Compute encoding for custom positions
             div_term = torch.exp(
                 torch.arange(0, d_model, 2, device=x.device).float() * 
                 (-math.log(self.config.base_freq) / d_model)
             )
             
-            # Expand dimensions для broadcasting
+            # Expand dimensions for broadcasting
             div_term = div_term.unsqueeze(0).unsqueeze(0)  # [1, 1, d_model//2]
             
             pos_encoding = torch.zeros(batch_size, seq_len, d_model, device=x.device)
@@ -151,14 +151,14 @@ class SinusoidalPositionalEncoding(nn.Module):
             pos_encoding = self.pe[:seq_len].unsqueeze(0).expand(batch_size, -1, -1)
             pos_encoding = pos_encoding.to(x.device)
         
-        # Apply frequency modulation если available
+        # Apply frequency modulation if available
         if self.freq_modulation is not None:
-            # Create frequency bands input (можно customized для crypto data)
+            # Create frequency bands input (possible customized for crypto data)
             freq_input = torch.randn(batch_size, seq_len, self.config.frequency_bands, device=x.device)
             freq_mod = self.freq_modulation(freq_input)
             pos_encoding = pos_encoding + freq_mod * 0.1  # Small влияние
         
-        # Add positional encoding к input
+        # Add positional encoding to input
         output = x + pos_encoding
         return self.dropout(output)
 
@@ -208,10 +208,10 @@ class LearnedPositionalEncoding(nn.Module):
         # Get position embeddings
         pos_embeddings = self.position_embeddings(position_ids)
         
-        # Add к input
+        # Add to input
         output = x + pos_embeddings
         
-        # Apply layer normalization если enabled
+        # Apply layer normalization if enabled
         if hasattr(self, 'layer_norm'):
             output = self.layer_norm(output)
         
@@ -239,7 +239,7 @@ class RelativePositionalEncoding(nn.Module):
             num_heads
         )
         
-        # Cache для relative position bucket mapping
+        # Cache for relative position bucket mapping
         self.register_buffer(
             'relative_position_bucket_cache',
             torch.zeros(config.max_seq_len, config.max_seq_len, dtype=torch.long)
@@ -317,12 +317,12 @@ class RelativePositionalEncoding(nn.Module):
 
 class RoPE(nn.Module):
     """
-    Rotary Position Embedding (RoPE) из RoFormer.
+    Rotary Position Embedding (RoPE) from RoFormer.
     
     Features:
     - Rotary position embeddings
     - Configurable theta
-    - Scaling support для longer sequences
+    - Scaling support for longer sequences
     """
     
     def __init__(self, config: PositionalEncodingConfig):
@@ -336,7 +336,7 @@ class RoPE(nn.Module):
         ))
         self.register_buffer('inv_freq', inv_freq)
         
-        # Scaling для longer sequences
+        # Scaling for longer sequences
         self.scaling_factor = 1.0
         if config.rope_scaling is not None:
             scaling_type = config.rope_scaling.get('type', 'linear')
@@ -350,13 +350,13 @@ class RoPE(nn.Module):
             else:
                 self.scaling_factor = scaling_factor
         
-        # Cache для cos и sin values
+        # Cache for cos and sin values
         self._cos_cache = None
         self._sin_cache = None
         self._cache_seq_len = 0
     
     def _compute_cos_sin_cache(self, seq_len: int, device: torch.device, dtype: torch.dtype):
-        """Compute и cache cos/sin values."""
+        """Compute and cache cos/sin values."""
         if seq_len > self._cache_seq_len or self._cos_cache is None:
             self._cache_seq_len = max(seq_len, self._cache_seq_len)
             
@@ -381,12 +381,12 @@ class RoPE(nn.Module):
         x: torch.Tensor, 
         position_ids: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """Apply RoPE к tensor x."""
+        """Apply RoPE to tensor x."""
         # x shape: [batch_size, seq_len, num_heads, head_dim]
-        # или [batch_size, seq_len, d_model]
+        # or [batch_size, seq_len, d_model]
         
         if x.dim() == 3:
-            # Reshape для multi-head format
+            # Reshape for multi-head format
             batch_size, seq_len, d_model = x.shape
             num_heads = 8  # Default, should be configured
             head_dim = d_model // num_heads
@@ -394,13 +394,13 @@ class RoPE(nn.Module):
         else:
             batch_size, seq_len, num_heads, head_dim = x.shape
         
-        # Get cos и sin values
+        # Get cos and sin values
         cos, sin = self._compute_cos_sin_cache(seq_len, x.device, x.dtype)
         
         # Apply rotary embedding
         x_rotated = self._apply_rope(x, cos, sin)
         
-        # Reshape back если needed
+        # Reshape back if needed
         if x.dim() == 3:
             x_rotated = x_rotated.view(batch_size, seq_len, -1)
         
@@ -408,7 +408,7 @@ class RoPE(nn.Module):
     
     def _apply_rope(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
         """Apply rotary position embedding."""
-        # Split x в две половины
+        # Split x in две halves
         x1, x2 = x.chunk(2, dim=-1)
         
         # Apply rotation
@@ -425,9 +425,9 @@ class ALiBi(nn.Module):
     Attention with Linear Biases (ALiBi).
     
     Features:
-    - Linear bias penalties для distant tokens
+    - Linear bias penalties for distant tokens
     - No explicit positional embeddings needed
-    - Extrapolates well к longer sequences
+    - Extrapolates well to longer sequences
     """
     
     def __init__(self, config: PositionalEncodingConfig, num_heads: int):
@@ -435,12 +435,12 @@ class ALiBi(nn.Module):
         self.config = config
         self.num_heads = num_heads
         
-        # Compute slopes для каждой attention head
+        # Compute slopes for each attention head
         slopes = self._get_slopes(num_heads)
         self.register_buffer('slopes', slopes)
     
     def _get_slopes(self, num_heads: int) -> torch.Tensor:
-        """Get slopes для ALiBi bias."""
+        """Get slopes for ALiBi bias."""
         def get_slopes_power_of_2(n):
             start = (2**(-2**-(math.log2(n)-3)))
             ratio = start
@@ -461,7 +461,7 @@ class ALiBi(nn.Module):
         
         Args:
             seq_len: Sequence length
-            device: Device для tensor creation
+            device: Device for tensor creation
             
         Returns:
             bias: [num_heads, seq_len, seq_len]
@@ -473,7 +473,7 @@ class ALiBi(nn.Module):
         # Apply slopes
         bias = distance_matrix.unsqueeze(0) * self.slopes.unsqueeze(1).unsqueeze(2)
         
-        # Clamp максимальный bias
+        # Clamp maximum bias
         bias = torch.clamp(bias, max=0, min=-self.config.alibi_max_bias)
         
         return bias
@@ -535,7 +535,7 @@ class CryptoPositionalEncoding(nn.Module):
             # Extract time features
             batch_size, seq_len = timestamps.shape
             
-            # Convert timestamps к time features
+            # Convert timestamps to time features
             hours = (timestamps // 3600) % 24  # Hour of day
             dow = ((timestamps // (24 * 3600)) + 4) % 7  # Day of week (Monday=0)
             
@@ -561,7 +561,7 @@ class CryptoPositionalEncoding(nn.Module):
             # Combine temporal features
             temporal_features = torch.cat([session_emb, hour_emb, dow_emb, cycle_emb], dim=-1)
             
-            # Combine с positional encoding
+            # Combine with positional encoding
             combined_features = torch.cat([x_pos, temporal_features], dim=-1)
             output = self.combination(combined_features)
         else:
@@ -575,11 +575,11 @@ def create_positional_encoding(
     num_heads: Optional[int] = None
 ) -> nn.Module:
     """
-    Factory function для создания positional encoding.
+    Factory function for creation positional encoding.
     
     Args:
         config: Configuration object
-        num_heads: Number of attention heads (для relative/alibi)
+        num_heads: Number of attention heads (for relative/alibi)
         
     Returns:
         Positional encoding module
@@ -590,13 +590,13 @@ def create_positional_encoding(
         return LearnedPositionalEncoding(config)
     elif config.encoding_type == "relative":
         if num_heads is None:
-            raise ValueError("num_heads required для relative positional encoding")
+            raise ValueError("num_heads required for relative positional encoding")
         return RelativePositionalEncoding(config, num_heads)
     elif config.encoding_type == "rope":
         return RoPE(config)
     elif config.encoding_type == "alibi":
         if num_heads is None:
-            raise ValueError("num_heads required для ALiBi")
+            raise ValueError("num_heads required for ALiBi")
         return ALiBi(config, num_heads)
     elif config.encoding_type == "crypto":
         return CryptoPositionalEncoding(config)
@@ -605,7 +605,7 @@ def create_positional_encoding(
 
 
 if __name__ == "__main__":
-    # Test различных positional encodings
+    # Test various positional encodings
     config = PositionalEncodingConfig(
         d_model=512,
         max_seq_len=1000,
@@ -662,7 +662,7 @@ if __name__ == "__main__":
     print(f"ALiBi: {sum(p.numel() for p in alibi_encoding.parameters())}")
     print(f"Crypto: {sum(p.numel() for p in crypto_encoding.parameters())}")
     
-    # Test extrapolation к longer sequences
+    # Test extrapolation to longer sequences
     long_seq_len = 2048
     long_x = torch.randn(2, long_seq_len, config.d_model)
     

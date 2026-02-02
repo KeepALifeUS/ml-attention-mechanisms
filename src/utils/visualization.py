@@ -1,8 +1,8 @@
 """
-Visualization utilities для attention mechanisms в crypto trading models.
-Создает heatmaps, attention flow diagrams и interactive visualizations.
+Visualization utilities for attention mechanisms in crypto trading models.
+Создает heatmaps, attention flow diagrams and interactive visualizations.
 
-Production visualization tools для attention analysis и model debugging.
+Production visualization tools for attention analysis and model debugging.
 """
 
 import math
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class VisualizationConfig:
-    """Конфигурация для visualization."""
+    """Configuration for visualization."""
     figsize: Tuple[int, int] = (12, 8)
     dpi: int = 100
     cmap: str = "viridis"
@@ -53,7 +53,7 @@ class VisualizationConfig:
 
 class AttentionHeatmapVisualizer:
     """
-    Создает heatmap visualizations для attention weights.
+    Создает heatmap visualizations for attention weights.
     
     Features:
     - Multi-head attention heatmaps
@@ -79,16 +79,16 @@ class AttentionHeatmapVisualizer:
         Create attention heatmap visualization.
         
         Args:
-            attention_weights: Attention weights [seq_len, seq_len] или [num_heads, seq_len, seq_len]
+            attention_weights: Attention weights [seq_len, seq_len] or [num_heads, seq_len, seq_len]
             title: Plot title
-            token_labels: Labels для sequence positions
-            save_path: Path для saving plot
+            token_labels: Labels for sequence positions
+            save_path: Path for saving plot
         """
         if not MATPLOTLIB_AVAILABLE:
             logger.error("Matplotlib not available for heatmap visualization")
             return None
         
-        # Convert к numpy
+        # Convert to numpy
         if isinstance(attention_weights, torch.Tensor):
             weights_np = attention_weights.detach().cpu().numpy()
         else:
@@ -116,7 +116,7 @@ class AttentionHeatmapVisualizer:
                 # Add colorbar
                 plt.colorbar(im, ax=ax)
                 
-                # Set token labels если provided
+                # Set token labels if provided
                 if token_labels:
                     ax.set_xticks(range(len(token_labels)))
                     ax.set_yticks(range(len(token_labels)))
@@ -142,7 +142,7 @@ class AttentionHeatmapVisualizer:
             # Add colorbar
             plt.colorbar(im, ax=ax)
             
-            # Set token labels если provided
+            # Set token labels if provided
             if token_labels:
                 ax.set_xticks(range(len(token_labels)))
                 ax.set_yticks(range(len(token_labels)))
@@ -155,7 +155,7 @@ class AttentionHeatmapVisualizer:
         
         plt.tight_layout()
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=self.config.dpi, bbox_inches='tight')
@@ -174,13 +174,13 @@ class AttentionHeatmapVisualizer:
         save_path: Optional[str] = None
     ) -> Optional[plt.Figure]:
         """
-        Plot attention weights от multiple layers для comparison.
+        Plot attention weights from multiple layers for comparison.
         
         Args:
             attention_weights_list: List of attention weight tensors
             layer_names: Names of layers
             title: Plot title
-            save_path: Path для saving plot
+            save_path: Path for saving plot
         """
         if not MATPLOTLIB_AVAILABLE:
             logger.error("Matplotlib not available for multi-layer visualization")
@@ -197,7 +197,7 @@ class AttentionHeatmapVisualizer:
             axes = [axes]
         
         for layer_idx, (weights, layer_name, ax) in enumerate(zip(attention_weights_list, layer_names, axes)):
-            # Convert к numpy и take average over heads если needed
+            # Convert to numpy and take average over heads if needed
             if isinstance(weights, torch.Tensor):
                 weights_np = weights.detach().cpu().numpy()
             else:
@@ -223,7 +223,7 @@ class AttentionHeatmapVisualizer:
         fig.suptitle(title)
         plt.tight_layout()
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=self.config.dpi, bbox_inches='tight')
@@ -246,9 +246,9 @@ class AttentionHeatmapVisualizer:
         
         Args:
             attention_sequence: Sequence of attention weight tensors
-            timestamps: Timestamps для each attention pattern
+            timestamps: Timestamps for each attention pattern
             title: Plot title
-            save_path: Path для saving plot
+            save_path: Path for saving plot
         """
         if not MATPLOTLIB_AVAILABLE:
             logger.error("Matplotlib not available for evolution visualization")
@@ -274,7 +274,7 @@ class AttentionHeatmapVisualizer:
             else:
                 ax = axes[row, col]
             
-            # Convert к numpy и average over heads
+            # Convert to numpy and average over heads
             if isinstance(weights, torch.Tensor):
                 weights_np = weights.detach().cpu().numpy()
             else:
@@ -312,7 +312,7 @@ class AttentionHeatmapVisualizer:
         fig.suptitle(title)
         plt.tight_layout()
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=self.config.dpi, bbox_inches='tight')
@@ -329,7 +329,7 @@ class InteractiveAttentionVisualizer:
     Interactive attention visualizations using Plotly.
     
     Features:
-    - Interactive heatmaps с zoom/pan
+    - Interactive heatmaps with zoom/pan
     - 3D attention visualizations  
     - Animated attention evolution
     - Multi-modal attention analysis
@@ -354,14 +354,14 @@ class InteractiveAttentionVisualizer:
         Args:
             attention_weights: Attention weights tensor
             title: Plot title  
-            token_labels: Labels для tokens
-            save_path: Path для saving HTML file
+            token_labels: Labels for tokens
+            save_path: Path for saving HTML file
         """
         if not PLOTLY_AVAILABLE:
             logger.error("Plotly not available for interactive visualization")
             return None
         
-        # Convert к numpy
+        # Convert to numpy
         if isinstance(attention_weights, torch.Tensor):
             weights_np = attention_weights.detach().cpu().numpy()
         else:
@@ -371,7 +371,7 @@ class InteractiveAttentionVisualizer:
         if weights_np.ndim == 3:
             num_heads = weights_np.shape[0]
             
-            # Create subplots для each head
+            # Create subplots for each head
             fig = make_subplots(
                 rows=1, cols=num_heads,
                 subplot_titles=[f'Head {i+1}' for i in range(num_heads)],
@@ -382,7 +382,7 @@ class InteractiveAttentionVisualizer:
                 heatmap = go.Heatmap(
                     z=weights_np[head_idx],
                     colorscale='Viridis',
-                    showscale=(head_idx == num_heads - 1),  # Show colorbar только для last head
+                    showscale=(head_idx == num_heads - 1),  # Show colorbar only for last head
                     x=token_labels,
                     y=token_labels
                 )
@@ -411,7 +411,7 @@ class InteractiveAttentionVisualizer:
                 height=600
             )
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             fig.write_html(save_path)
@@ -434,13 +434,13 @@ class InteractiveAttentionVisualizer:
         Args:
             attention_weights: Attention weights [num_heads, seq_len, seq_len]
             title: Plot title
-            save_path: Path для saving HTML file
+            save_path: Path for saving HTML file
         """
         if not PLOTLY_AVAILABLE:
             logger.error("Plotly not available for 3D visualization")
             return None
         
-        # Convert к numpy
+        # Convert to numpy
         if isinstance(attention_weights, torch.Tensor):
             weights_np = attention_weights.detach().cpu().numpy()
         else:
@@ -467,10 +467,10 @@ class InteractiveAttentionVisualizer:
                 name=f'Head {head_idx + 1}',
                 colorscale='Viridis',
                 opacity=0.7,
-                visible=(head_idx == 0)  # Show только первый head initially
+                visible=(head_idx == 0)  # Show only первый head initially
             ))
         
-        # Add buttons для switching between heads
+        # Add buttons for switching between heads
         buttons = []
         for head_idx in range(num_heads):
             visibility = [False] * num_heads
@@ -502,7 +502,7 @@ class InteractiveAttentionVisualizer:
             )]
         )
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             fig.write_html(save_path)
@@ -526,16 +526,16 @@ class InteractiveAttentionVisualizer:
         
         Args:
             attention_weights: Attention weights [seq_len, seq_len]
-            token_labels: Labels для tokens
+            token_labels: Labels for tokens
             threshold: Minimum attention weight to show connection
             title: Plot title
-            save_path: Path для saving HTML file
+            save_path: Path for saving HTML file
         """
         if not PLOTLY_AVAILABLE:
             logger.error("Plotly not available for flow diagram")
             return None
         
-        # Convert к numpy
+        # Convert to numpy
         if isinstance(attention_weights, torch.Tensor):
             weights_np = attention_weights.detach().cpu().numpy()
         else:
@@ -551,7 +551,7 @@ class InteractiveAttentionVisualizer:
         node_x = np.cos(angles)
         node_y = np.sin(angles)
         
-        # Create edges для strong connections
+        # Create edges for strong connections
         edge_x = []
         edge_y = []
         edge_weights = []
@@ -613,7 +613,7 @@ class InteractiveAttentionVisualizer:
                            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
                        ))
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             fig.write_html(save_path)
@@ -627,7 +627,7 @@ class InteractiveAttentionVisualizer:
 
 class CryptoAttentionVisualizer:
     """
-    Specialized visualization для crypto trading attention patterns.
+    Specialized visualization for crypto trading attention patterns.
     
     Features:
     - Price-attention correlation plots
@@ -650,20 +650,20 @@ class CryptoAttentionVisualizer:
         save_path: Optional[str] = None
     ) -> Optional[plt.Figure]:
         """
-        Plot correlation between attention patterns и price movements.
+        Plot correlation between attention patterns and price movements.
         
         Args:
             attention_weights: Attention weights [seq_len, seq_len]
             price_data: Price data [seq_len]
-            timestamps: Timestamps для each data point
+            timestamps: Timestamps for each data point
             title: Plot title
-            save_path: Path для saving plot
+            save_path: Path for saving plot
         """
         if not MATPLOTLIB_AVAILABLE:
             logger.error("Matplotlib not available for correlation plot")
             return None
         
-        # Convert к numpy
+        # Convert to numpy
         if isinstance(attention_weights, torch.Tensor):
             weights_np = attention_weights.detach().cpu().numpy()
         else:
@@ -719,7 +719,7 @@ class CryptoAttentionVisualizer:
         plt.suptitle(title)
         plt.tight_layout()
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=self.config.dpi, bbox_inches='tight')
@@ -744,13 +744,13 @@ class CryptoAttentionVisualizer:
             attention_weights: Cross-asset attention weights [num_assets, num_assets]
             asset_names: Names of crypto assets
             title: Plot title
-            save_path: Path для saving HTML file
+            save_path: Path for saving HTML file
         """
         if not PLOTLY_AVAILABLE:
             logger.error("Plotly not available for multi-asset visualization")
             return None
         
-        # Convert к numpy
+        # Convert to numpy
         if isinstance(attention_weights, torch.Tensor):
             weights_np = attention_weights.detach().cpu().numpy()
         else:
@@ -774,7 +774,7 @@ class CryptoAttentionVisualizer:
             height=600
         )
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             fig.write_html(save_path)
@@ -793,13 +793,13 @@ class CryptoAttentionVisualizer:
         save_path: Optional[str] = None
     ) -> Optional[go.Figure]:
         """
-        Create comprehensive dashboard с multiple attention visualizations.
+        Create comprehensive dashboard with multiple attention visualizations.
         
         Args:
-            attention_data: Dictionary с different attention patterns
-            price_data: Price data для correlation analysis
-            timestamps: Timestamps для data
-            save_path: Path для saving HTML file
+            attention_data: Dictionary with different attention patterns
+            price_data: Price data for correlation analysis
+            timestamps: Timestamps for data
+            save_path: Path for saving HTML file
         """
         if not PLOTLY_AVAILABLE:
             logger.error("Plotly not available for dashboard")
@@ -831,7 +831,7 @@ class CryptoAttentionVisualizer:
             row = (plot_idx // cols) + 1
             col = (plot_idx % cols) + 1
             
-            # Convert к numpy
+            # Convert to numpy
             if isinstance(weights, torch.Tensor):
                 weights_np = weights.detach().cpu().numpy()
             else:
@@ -850,7 +850,7 @@ class CryptoAttentionVisualizer:
             fig.add_trace(heatmap, row=row, col=col)
             plot_idx += 1
         
-        # Add price data если provided
+        # Add price data if provided
         if price_data is not None:
             row = (plot_idx // cols) + 1
             col = (plot_idx % cols) + 1
@@ -875,7 +875,7 @@ class CryptoAttentionVisualizer:
             showlegend=False
         )
         
-        # Save если requested
+        # Save if requested
         if save_path:
             Path(save_path).parent.mkdir(parents=True, exist_ok=True)
             fig.write_html(save_path)
@@ -896,12 +896,12 @@ def create_visualization_report(
     Create comprehensive visualization report.
     
     Args:
-        attention_data: Dictionary с attention patterns
-        output_dir: Output directory для report
+        attention_data: Dictionary with attention patterns
+        output_dir: Output directory for report
         report_title: Title of the report
         
     Returns:
-        Path к generated report
+        Path to generated report
     """
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)

@@ -1,11 +1,11 @@
 """
-ML Attention Mechanisms Package для Crypto Trading Bot v5.0
+ML Attention Mechanisms Package for Crypto Trading Bot v5.0
 
 Comprehensive attention mechanisms library optimized for crypto trading applications.
 Includes multi-head attention, self-attention, cross-attention, temporal attention,
 positional encodings, transformer blocks, and crypto-specific models.
 
-Enterprise-grade attention mechanisms с production optimizations.
+Enterprise-grade attention mechanisms with production optimizations.
 """
 
 __version__ = "1.0.0"
@@ -301,9 +301,9 @@ def print_package_summary():
 ╚══════════════════════════════════════════════════════════════════════════════╝
     """)
 
-# Convenience imports для common usage patterns
+# Convenience imports for common usage patterns
 def quick_setup():
-    """Quick setup для common use cases."""
+    """Quick setup for common use cases."""
     examples = {
         'basic_attention': """
 from ml_attention_mechanisms import MultiHeadAttention, AttentionConfig

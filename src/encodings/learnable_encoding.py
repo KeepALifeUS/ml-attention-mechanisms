@@ -1,8 +1,8 @@
 """
-Learnable Encoding реализации для адаптивного позиционного кодирования.
-Позволяет модели обучать оптимальные representations для crypto trading patterns.
+Learnable Encoding implementations for adaptive positional encoding.
+Allows model обучать optimal representations for crypto trading patterns.
 
-Adaptive learnable encodings с curriculum learning для trading optimization.
+Adaptive learnable encodings with curriculum learning for trading optimization.
 """
 
 import math
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class LearnableEncodingConfig:
-    """Конфигурация для learnable encoding."""
+    """Configuration for learnable encoding."""
     d_model: int = 512
     max_seq_len: int = 10000
     dropout: float = 0.1
@@ -42,7 +42,7 @@ class LearnableEncodingConfig:
     use_context_aware_embeddings: bool = False  # Context-dependent position embeddings
     context_dim: int = 64
     
-    use_curriculum_learning: bool = False  # Curriculum learning для position complexity
+    use_curriculum_learning: bool = False  # Curriculum learning for position complexity
     curriculum_stages: int = 5
     
     # Regularization
@@ -66,7 +66,7 @@ class LearnableEncodingConfig:
 
 
 class LearnablePositionalEmbedding(nn.Module):
-    """Learnable positional embeddings с advanced features."""
+    """Learnable positional embeddings with advanced features."""
     
     def __init__(self, config: LearnableEncodingConfig):
         super().__init__()
@@ -211,7 +211,7 @@ class LearnablePositionalEmbedding(nn.Module):
         
         # Combine embeddings
         if len(embeddings_list) > 1:
-            # Concatenate and project если different dimensions
+            # Concatenate and project if different dimensions
             combined_embeddings = embeddings_list[0]
             for emb in embeddings_list[1:]:
                 if emb.shape[-1] != combined_embeddings.shape[-1]:
@@ -251,8 +251,8 @@ class LearnablePositionalEmbedding(nn.Module):
         return combined_embeddings
     
     def _extract_time_embeddings(self, timestamps: torch.Tensor) -> torch.Tensor:
-        """Extract learnable time embeddings от timestamps."""
-        # Convert timestamps к time components
+        """Extract learnable time embeddings from timestamps."""
+        # Convert timestamps to time components
         minutes = ((timestamps // 60) % 60).long()
         hours = ((timestamps // 3600) % 24).long()
         days = (((timestamps // (24 * 3600)) + 4) % 7).long()  # Monday = 0
@@ -284,7 +284,7 @@ class LearnablePositionalEmbedding(nn.Module):
         hierarchy_features = []
         
         for level, embedding_layer in enumerate(self.hierarchy_embeddings):
-            # Different granularities для разных levels
+            # Different granularities for разных levels
             scale = 2 ** level
             scaled_positions = (position_ids // scale).clamp(max=embedding_layer.num_embeddings - 1)
             level_embeddings = embedding_layer(scaled_positions)
@@ -300,7 +300,7 @@ class LearnablePositionalEmbedding(nn.Module):
             self.current_stage = min(stage, self.config.curriculum_stages - 1)
     
     def get_embedding_regularization_loss(self) -> torch.Tensor:
-        """Compute regularization loss для embeddings."""
+        """Compute regularization loss for embeddings."""
         if not self.config.use_embedding_regularization:
             return torch.tensor(0.0)
         
@@ -404,7 +404,7 @@ class CryptoLearnableEmbedding(nn.Module):
         
         # Market regime embeddings
         if self.config.use_market_regime_embeddings:
-            # Detect market regime от input features
+            # Detect market regime from input features
             regime_probs = self.regime_detector(input_features)
             regime_ids = torch.argmax(regime_probs, dim=-1)
             regime_emb = self.regime_embeddings(regime_ids)
@@ -420,7 +420,7 @@ class CryptoLearnableEmbedding(nn.Module):
         if pattern_ids is not None:
             pattern_emb = self.pattern_embeddings(pattern_ids)
         else:
-            # Default к uniform pattern distribution
+            # Default to uniform pattern distribution
             pattern_ids = torch.zeros(batch_size, seq_len, dtype=torch.long, device=input_features.device)
             pattern_emb = self.pattern_embeddings(pattern_ids)
         crypto_features.append(pattern_emb)
@@ -429,7 +429,7 @@ class CryptoLearnableEmbedding(nn.Module):
         if volatility_regime is not None:
             vol_emb = self.volatility_embeddings(volatility_regime)
         else:
-            # Default к medium volatility
+            # Default to medium volatility
             vol_regime = torch.ones(batch_size, seq_len, dtype=torch.long, device=input_features.device)
             vol_emb = self.volatility_embeddings(vol_regime)
         crypto_features.append(vol_emb)
@@ -443,7 +443,7 @@ class CryptoLearnableEmbedding(nn.Module):
 
 class AdaptiveEmbeddingLayer(nn.Module):
     """
-    Adaptive embedding layer который adjusts based на input characteristics.
+    Adaptive embedding layer which adjusts based on input characteristics.
     
     Features:
     - Input-dependent embedding selection
@@ -485,11 +485,11 @@ class AdaptiveEmbeddingLayer(nn.Module):
             nn.Linear(config.d_model, config.d_model)
         )
         
-        # Initialize embedding banks с different strategies
+        # Initialize embedding banks with different strategies
         self._init_embedding_banks()
     
     def _init_embedding_banks(self):
-        """Initialize embedding banks с different strategies."""
+        """Initialize embedding banks with different strategies."""
         init_strategies = ["normal", "uniform", "xavier", "sinusoidal"]
         
         for i, (bank, strategy) in enumerate(zip(self.embedding_banks, init_strategies)):
@@ -507,7 +507,7 @@ class AdaptiveEmbeddingLayer(nn.Module):
                 bank.weight.data = pos_enc
     
     def _create_sinusoidal_encoding(self, max_len: int, d_model: int) -> torch.Tensor:
-        """Create sinusoidal encoding для initialization."""
+        """Create sinusoidal encoding for initialization."""
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         
@@ -537,7 +537,7 @@ class AdaptiveEmbeddingLayer(nn.Module):
         """
         batch_size, seq_len, d_model = input_features.shape
         
-        # Get embeddings от all banks
+        # Get embeddings from all banks
         bank_embeddings = []
         for bank in self.embedding_banks:
             emb = bank(position_ids)
@@ -559,7 +559,7 @@ class AdaptiveEmbeddingLayer(nn.Module):
             value=weighted_embeddings
         )
         
-        # Interpolation с input features
+        # Interpolation with input features
         interpolation_input = torch.cat([input_features, refined_embeddings], dim=-1)
         final_embeddings = self.interpolation(interpolation_input)
         
@@ -568,7 +568,7 @@ class AdaptiveEmbeddingLayer(nn.Module):
 
 def create_learnable_encoding(config: LearnableEncodingConfig) -> nn.Module:
     """
-    Factory function для создания learnable encoding.
+    Factory function for creation learnable encoding.
     
     Args:
         config: Learnable encoding configuration

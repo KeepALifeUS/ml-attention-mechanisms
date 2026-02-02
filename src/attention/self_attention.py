@@ -1,8 +1,8 @@
 """
-Self-Attention механизм для временных рядов в крипто-торговле.
-Оптимизированная реализация для sequence modeling с поддержкой temporal patterns.
+Self-Attention механизм for temporal рядов in crypto trading.
+Optimized implementation for sequence modeling with поддержкой temporal patterns.
 
-Production-ready self-attention с memory efficiency и real-time inference.
+Production-ready self-attention with memory efficiency and real-time inference.
 """
 
 import math
@@ -22,19 +22,19 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SelfAttentionConfig(AttentionConfig):
-    """Конфигурация для Self-Attention с дополнительными параметрами."""
+    """Configuration for Self-Attention with дополнительными parameters."""
     use_layer_norm: bool = True
     layer_norm_eps: float = 1e-5
     use_residual: bool = True
     use_pre_norm: bool = True  # Pre-norm vs post-norm
-    use_gated_attention: bool = False  # Gated attention для контроля информационного потока
+    use_gated_attention: bool = False  # Gated attention for контроля information stream
     use_sparse_attention: bool = False  # Sparse attention patterns
     sparse_block_size: int = 64
     use_local_attention: bool = False  # Local attention window
     local_window_size: int = 128
     
     # Crypto-specific parameters
-    use_temporal_decay: bool = True  # Temporal decay для older timesteps
+    use_temporal_decay: bool = True  # Temporal decay for older timesteps
     temporal_decay_rate: float = 0.95
     use_volume_scaling: bool = True  # Volume-based attention scaling
     use_volatility_aware: bool = True  # Volatility-aware attention
@@ -42,16 +42,16 @@ class SelfAttentionConfig(AttentionConfig):
 
 class SelfAttention(nn.Module):
     """
-    Self-Attention механизм оптимизированный для крипто временных рядов.
+    Self-Attention механизм optimized for crypto temporal рядов.
     
     Features:
-    - Standard self-attention с residual connections
-    - Layer normalization (pre-norm или post-norm)
-    - Gated attention для selective information flow
-    - Sparse attention patterns для efficiency
-    - Local attention window для long sequences
+    - Standard self-attention with residual connections
+    - Layer normalization (pre-norm or post-norm)
+    - Gated attention for selective information flow
+    - Sparse attention patterns for efficiency
+    - Local attention window for long sequences
     - Temporal decay weights
-    - Volume и volatility aware attention
+    - Volume and volatility aware attention
     """
     
     def __init__(self, config: SelfAttentionConfig):
@@ -96,7 +96,7 @@ class SelfAttention(nn.Module):
             self.volatility_proj = nn.Linear(1, config.num_heads, bias=False)
     
     def _create_sparse_mask(self, seq_len: int, block_size: int) -> torch.Tensor:
-        """Создание sparse attention mask с block patterns."""
+        """Create sparse attention mask with block patterns."""
         mask = torch.zeros(seq_len, seq_len, dtype=torch.bool)
         
         # Diagonal blocks
@@ -115,7 +115,7 @@ class SelfAttention(nn.Module):
         return mask
     
     def _create_local_mask(self, seq_len: int, window_size: int) -> torch.Tensor:
-        """Создание local attention mask."""
+        """Create local attention mask."""
         mask = torch.zeros(seq_len, seq_len, dtype=torch.bool)
         
         for i in range(seq_len):
@@ -126,10 +126,10 @@ class SelfAttention(nn.Module):
         return mask
     
     def _create_temporal_weights(self, seq_len: int, decay_rate: float) -> torch.Tensor:
-        """Создание temporal decay weights."""
+        """Create temporal decay weights."""
         positions = torch.arange(seq_len, dtype=torch.float)
         weights = decay_rate ** positions
-        return weights.flip(0)  # Более recent timesteps получают больший вес
+        return weights.flip(0)  # More recent timesteps получают больший weight
     
     def forward(
         self,
@@ -167,7 +167,7 @@ class SelfAttention(nn.Module):
             seq_len, attention_mask, x.device
         )
         
-        # Apply temporal decay (если включен)
+        # Apply temporal decay (if включен)
         if self.config.use_temporal_decay and hasattr(self, 'temporal_weights'):
             temporal_weights = self.temporal_weights[:seq_len].to(x.device)
             x = x * temporal_weights.view(1, -1, 1)
@@ -185,7 +185,7 @@ class SelfAttention(nn.Module):
         if need_weights:
             attn_output, attention_weights = attn_output
         
-        # Volume scaling (если доступен volume)
+        # Volume scaling (if available volume)
         if self.config.use_volume_scaling and volume is not None:
             volume_scale = torch.sigmoid(self.volume_proj(volume.unsqueeze(-1)))
             attn_output = attn_output * volume_scale
@@ -196,7 +196,7 @@ class SelfAttention(nn.Module):
                 self.volatility_proj(volatility.unsqueeze(-1)), dim=-1
             )  # [B, L, H]
             
-            # Применяем к каждой голове отдельно
+            # Применяем to each голове отдельно
             attn_output = attn_output.view(batch_size, seq_len, self.config.num_heads, -1)
             attn_output = attn_output * volatility_weights.unsqueeze(-1)
             attn_output = attn_output.view(batch_size, seq_len, d_model)
@@ -224,7 +224,7 @@ class SelfAttention(nn.Module):
         attention_mask: Optional[torch.Tensor],
         device: torch.device
     ) -> Optional[torch.Tensor]:
-        """Создание комбинированной attention mask."""
+        """Create combined attention mask."""
         masks = []
         
         # Custom attention mask
@@ -259,7 +259,7 @@ class SelfAttention(nn.Module):
 
 class CryptoSelfAttention(SelfAttention):
     """
-    Специализированный Self-Attention для крипто-торговых стратегий.
+    Specialized Self-Attention for crypto trading strategies.
     
     Additional Features:
     - Market microstructure awareness
@@ -276,7 +276,7 @@ class CryptoSelfAttention(SelfAttention):
         
         # Cross-timeframe attention weights
         self.timeframe_weights = nn.Parameter(
-            torch.ones(5) / 5  # 5 основных timeframes
+            torch.ones(5) / 5  # 5 main timeframes
         )
         
         # Order book depth projection
@@ -295,7 +295,7 @@ class CryptoSelfAttention(SelfAttention):
         **kwargs
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        Forward с учетом market microstructure.
+        Forward with consideration market microstructure.
         
         Args:
             x: Price/volume features [batch_size, seq_len, d_model]
@@ -304,7 +304,7 @@ class CryptoSelfAttention(SelfAttention):
             sentiment: News sentiment [batch_size, seq_len, 3]
             timeframe_weights: Custom timeframe weights [5]
         """
-        # Augment input с market microstructure
+        # Augment input with market microstructure
         augmented_features = []
         
         if bid_ask is not None:
@@ -340,8 +340,8 @@ class CryptoSelfAttention(SelfAttention):
 
 class LinearSelfAttention(nn.Module):
     """
-    Linear complexity self-attention для очень длинных последовательностей.
-    Основан на kernel trick для аппроксимации softmax attention.
+    Linear complexity self-attention for very длинных последовательностей.
+    Основан on kernel trick for аппроксимации softmax attention.
     """
     
     def __init__(self, config: SelfAttentionConfig):
@@ -355,20 +355,20 @@ class LinearSelfAttention(nn.Module):
         self.o_proj = nn.Linear(config.d_model, config.d_model, bias=config.use_bias)
         
         # Feature mapping dimension
-        self.feature_dim = config.head_dim * 2  # Increased для better approximation
+        self.feature_dim = config.head_dim * 2  # Increased for better approximation
         
-        # Random features для kernel approximation
+        # Random features for kernel approximation
         self.register_buffer(
             'random_features',
             torch.randn(config.head_dim, self.feature_dim) * (config.head_dim ** -0.5)
         )
     
     def _phi(self, x: torch.Tensor) -> torch.Tensor:
-        """Feature mapping function для kernel approximation."""
+        """Feature mapping function for kernel approximation."""
         # x: [B, H, L, D_h]
         projections = torch.matmul(x, self.random_features)  # [B, H, L, feature_dim]
         
-        # Split на косинусную и синусную части
+        # Split on косинусную and синусную части
         cos_proj, sin_proj = torch.split(projections, self.feature_dim // 2, dim=-1)
         
         return torch.cat([
@@ -390,7 +390,7 @@ class LinearSelfAttention(nn.Module):
         K = self.k_proj(x)
         V = self.v_proj(x)
         
-        # Reshape для multi-head
+        # Reshape for multi-head
         Q = Q.view(batch_size, seq_len, self.config.num_heads, self.config.head_dim).transpose(1, 2)
         K = K.view(batch_size, seq_len, self.config.num_heads, self.config.head_dim).transpose(1, 2)
         V = V.view(batch_size, seq_len, self.config.num_heads, self.config.head_dim).transpose(1, 2)
@@ -418,7 +418,7 @@ class LinearSelfAttention(nn.Module):
         output = self.o_proj(output)
         
         if need_weights:
-            # Linear attention не предоставляет explicit attention weights
+            # Linear attention not provides explicit attention weights
             dummy_weights = torch.zeros(
                 batch_size, self.config.num_heads, seq_len, seq_len,
                 device=x.device
@@ -435,7 +435,7 @@ def create_self_attention_layer(
     **kwargs
 ) -> nn.Module:
     """
-    Factory function для создания различных типов self-attention.
+    Factory function for creation various типов self-attention.
     
     Args:
         d_model: Model dimension
@@ -499,7 +499,7 @@ if __name__ == "__main__":
     )
     print(f"Crypto Self-Attention output: {crypto_output.shape}")
     
-    # Test linear attention для long sequences
+    # Test linear attention for long sequences
     linear_attention = LinearSelfAttention(config)
     
     long_x = torch.randn(2, 4096, config.d_model)  # Very long sequence

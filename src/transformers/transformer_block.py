@@ -1,8 +1,8 @@
 """
-Transformer Block реализация с оптимизациями для крипто-торговых ML моделей.
-Включает encoder/decoder blocks с advanced normalization и residual connections.
+Transformer Block implementation with оптимизациями for crypto trading ML models.
+Includes encoder/decoder blocks with advanced normalization and residual connections.
 
-Production-ready transformer blocks с memory efficiency и optimization.
+Production-ready transformer blocks with memory efficiency and optimization.
 """
 
 import math
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TransformerBlockConfig:
-    """Конфигурация для transformer blocks."""
+    """Configuration for transformer blocks."""
     d_model: int = 512
     num_heads: int = 8
     d_ff: int = 2048  # Feed-forward dimension
@@ -51,7 +51,7 @@ class TransformerBlockConfig:
     
     # Regularization
     use_dropout_schedule: bool = False  # Dynamic dropout scheduling
-    stochastic_depth_rate: float = 0.0  # Stochastic depth для regularization
+    stochastic_depth_rate: float = 0.0  # Stochastic depth for regularization
     
     # Crypto-specific features
     use_crypto_adaptations: bool = True
@@ -61,7 +61,7 @@ class TransformerBlockConfig:
 
 class FeedForward(nn.Module):
     """
-    Feed-forward network с различными activation functions и optimizations.
+    Feed-forward network with various activation functions and optimizations.
     
     Features:
     - Multiple activation functions
@@ -169,7 +169,7 @@ class RMSNorm(nn.Module):
 
 class TransformerEncoderBlock(nn.Module):
     """
-    Transformer Encoder Block с optimizations для crypto trading.
+    Transformer Encoder Block with optimizations for crypto trading.
     
     Features:
     - Multi-head self-attention
@@ -207,7 +207,7 @@ class TransformerEncoderBlock(nn.Module):
             self.norm1 = nn.LayerNorm(config.d_model, eps=config.norm_eps)
             self.norm2 = nn.LayerNorm(config.d_model, eps=config.norm_eps)
         
-        # Dropout для stochastic depth
+        # Dropout for stochastic depth
         if config.stochastic_depth_rate > 0:
             self.stochastic_depth = StochasticDepth(config.stochastic_depth_rate)
         
@@ -321,7 +321,7 @@ class TransformerEncoderBlock(nn.Module):
 
 class TransformerDecoderBlock(nn.Module):
     """
-    Transformer Decoder Block с optimizations.
+    Transformer Decoder Block with optimizations.
     
     Features:
     - Masked self-attention
@@ -339,7 +339,7 @@ class TransformerDecoderBlock(nn.Module):
             d_model=config.d_model,
             num_heads=config.num_heads,
             dropout=config.attention_dropout,
-            causal=True  # Causal для decoder
+            causal=True  # Causal for decoder
         )
         self.self_attention = SelfAttention(self_attention_config)
         
@@ -399,8 +399,8 @@ class TransformerDecoderBlock(nn.Module):
         Args:
             x: Decoder input [batch_size, target_len, d_model]
             encoder_output: Encoder output [batch_size, source_len, d_model]
-            self_attention_mask: Mask для self-attention
-            cross_attention_mask: Mask для cross-attention
+            self_attention_mask: Mask for self-attention
+            cross_attention_mask: Mask for cross-attention
             need_weights: Return attention weights
         """
         all_attention_weights = {}
@@ -421,7 +421,7 @@ class TransformerDecoderBlock(nn.Module):
             self_attn_output, self_attn_weights = self_attn_output
             all_attention_weights['self_attention'] = self_attn_weights
         
-        # Stochastic depth и residual
+        # Stochastic depth and residual
         if hasattr(self, 'stochastic_depth') and self.training:
             self_attn_output = self.stochastic_depth(self_attn_output)
         
@@ -451,7 +451,7 @@ class TransformerDecoderBlock(nn.Module):
             cross_attn_output, cross_attn_weights = cross_attn_output
             all_attention_weights['cross_attention'] = cross_attn_weights
         
-        # Stochastic depth и residual
+        # Stochastic depth and residual
         if hasattr(self, 'stochastic_depth') and self.training:
             cross_attn_output = self.stochastic_depth(cross_attn_output)
         
@@ -471,7 +471,7 @@ class TransformerDecoderBlock(nn.Module):
         
         ff_output = self.feed_forward(x)
         
-        # Stochastic depth и residual
+        # Stochastic depth and residual
         if hasattr(self, 'stochastic_depth') and self.training:
             ff_output = self.stochastic_depth(ff_output)
         
@@ -524,7 +524,7 @@ class DropoutScheduler(nn.Module):
 
 class CryptoTransformerBlock(TransformerEncoderBlock):
     """
-    Crypto-specific transformer block с trading optimizations.
+    Crypto-specific transformer block with trading optimizations.
     
     Additional Features:
     - Market regime aware processing
@@ -559,7 +559,7 @@ class CryptoTransformerBlock(TransformerEncoderBlock):
         
         # Risk scaling
         self.risk_gate = nn.Sequential(
-            nn.Linear(config.d_model + 1, config.d_model),  # +1 для risk score
+            nn.Linear(config.d_model + 1, config.d_model),  # +1 for risk score
             nn.Sigmoid()
         )
         
@@ -633,7 +633,7 @@ def create_transformer_block(
     block_type: str = "encoder"
 ) -> nn.Module:
     """
-    Factory function для создания transformer blocks.
+    Factory function for creation transformer blocks.
     
     Args:
         config: Block configuration
@@ -671,9 +671,9 @@ if __name__ == "__main__":
     encoder_output = encoder_block(x)
     print(f"Encoder block output: {encoder_output.shape}")
     
-    # Test с attention weights
+    # Test with attention weights
     encoder_output_with_weights, attention_weights = encoder_block(x, need_weights=True)
-    print(f"Encoder с weights: {encoder_output_with_weights.shape}, weights: {attention_weights.shape}")
+    print(f"Encoder with weights: {encoder_output_with_weights.shape}, weights: {attention_weights.shape}")
     
     # Test decoder block
     decoder_block = TransformerDecoderBlock(config)
@@ -767,7 +767,7 @@ if __name__ == "__main__":
     )
     
     stoch_block = TransformerEncoderBlock(stoch_config)
-    stoch_block.train()  # Training mode для stochastic depth
+    stoch_block.train()  # Training mode for stochastic depth
     
     stoch_outputs = []
     for i in range(5):

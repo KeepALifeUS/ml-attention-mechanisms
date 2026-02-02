@@ -1,9 +1,9 @@
 """
-Crypto-specific attention models для различных trading tasks.
-Объединяет attention mechanisms в ready-to-use модели для price prediction, 
-signal generation, risk assessment и portfolio optimization.
+Crypto-specific attention models for various trading tasks.
+Combines attention mechanisms in ready-to-use model for price prediction, 
+signal generation, risk assessment and portfolio optimization.
 
-Production attention models с pre-trained checkpoints и deployment optimization.
+Production attention models with pre-trained checkpoints and deployment optimization.
 """
 
 import math
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CryptoPredictionModelConfig:
-    """Конфигурация для crypto prediction models."""
+    """Configuration for crypto prediction models."""
     # Model architecture
     d_model: int = 512
     num_heads: int = 8
@@ -145,7 +145,7 @@ class CryptoPricePredictionModel(nn.Module):
         **kwargs
     ) -> Dict[str, torch.Tensor]:
         """
-        Predict crypto prices с uncertainty quantification.
+        Predict crypto prices with uncertainty quantification.
         
         Args:
             price_data: OHLCV + technical indicators [batch, seq_len, features]
@@ -156,7 +156,7 @@ class CryptoPricePredictionModel(nn.Module):
         """
         batch_size, seq_len = price_data.shape[:2]
         
-        # Enhance input с additional data
+        # Enhance input with additional data
         enhanced_features = [price_data]
         
         if self.config.use_orderbook and orderbook_data is not None:
@@ -204,11 +204,11 @@ class CryptoPricePredictionModel(nn.Module):
         
         outputs = {}
         
-        # Multi-step predictions для each target
+        # Multi-step predictions for each target
         for target in self.config.prediction_targets:
             target_predictions = []
             
-            # Generate predictions для each step
+            # Generate predictions for each step
             current_hidden = last_hidden
             for step in range(self.config.prediction_horizon):
                 step_pred = self.prediction_heads[target][step](current_hidden)
@@ -254,7 +254,7 @@ class CryptoSignalGeneratorModel(nn.Module):
         super().__init__()
         self.config = config
         
-        # Temporal attention для signal detection
+        # Temporal attention for signal detection
         temporal_config = TemporalAttentionConfig(
             d_model=config.d_model,
             num_heads=config.num_heads,
@@ -328,7 +328,7 @@ class CryptoSignalGeneratorModel(nn.Module):
         Generate trading signals.
         
         Args:
-            multi_timeframe_data: Data для каждого timeframe
+            multi_timeframe_data: Data for each timeframe
             timestamps: Unix timestamps
             volume_data: Volume patterns
             market_sessions: Market session identifiers
@@ -347,7 +347,7 @@ class CryptoSignalGeneratorModel(nn.Module):
             combined_tf_features = torch.cat(timeframe_features, dim=-1)
             fused_features = self.feature_fusion(combined_tf_features)
         else:
-            # Fallback если нет multi-timeframe data
+            # Fallback if no multi-timeframe data
             main_data = next(iter(multi_timeframe_data.values()))
             fused_features = self.timeframe_encoders[self.config.timeframes[0]](main_data)
         
@@ -359,7 +359,7 @@ class CryptoSignalGeneratorModel(nn.Module):
             market_sessions=market_sessions
         )
         
-        # Use last timestep для signal generation
+        # Use last timestep for signal generation
         signal_features = temporal_output[:, -1, :]
         
         outputs = {}
@@ -387,7 +387,7 @@ class CryptoSignalGeneratorModel(nn.Module):
 
 class CryptoRiskAssessmentModel(nn.Module):
     """
-    Risk assessment model для crypto portfolios.
+    Risk assessment model for crypto portfolios.
     
     Features:
     - Value at Risk (VaR) estimation
@@ -400,7 +400,7 @@ class CryptoRiskAssessmentModel(nn.Module):
         super().__init__()
         self.config = config
         
-        # Cross-attention для asset correlation analysis
+        # Cross-attention for asset correlation analysis
         cross_attention_config = CrossAttentionConfig(
             d_model=config.d_model,
             num_heads=config.num_heads,
@@ -423,7 +423,7 @@ class CryptoRiskAssessmentModel(nn.Module):
             nn.Linear(config.d_model, config.d_model // 2),
             nn.ReLU(),
             nn.Dropout(config.dropout),
-            nn.Linear(config.d_model // 2, config.risk_lookback)  # VaR для multiple horizons
+            nn.Linear(config.d_model // 2, config.risk_lookback)  # VaR for multiple horizons
         )
         
         # Drawdown prediction
@@ -478,13 +478,13 @@ class CryptoRiskAssessmentModel(nn.Module):
         # Encode risk features
         risk_features = self.risk_encoder(portfolio_data)
         
-        # Cross-asset attention для correlation analysis
+        # Cross-asset attention for correlation analysis
         cross_asset_features = self.cross_asset_attention(
             price_data=risk_features,
             exchange_data={"main": risk_features}
         )
         
-        # Use last timestep для risk assessment
+        # Use last timestep for risk assessment
         current_risk_state = cross_asset_features[:, -1, :]
         
         outputs = {}
@@ -544,7 +544,7 @@ class CryptoPortfolioOptimizerModel(nn.Module):
         super().__init__()
         self.config = config
         
-        # Multi-head attention для asset relationships
+        # Multi-head attention for asset relationships
         attention_config = AttentionConfig(
             d_model=config.d_model,
             num_heads=config.num_heads,
@@ -604,14 +604,14 @@ class CryptoPortfolioOptimizerModel(nn.Module):
         Optimize portfolio allocation.
         
         Args:
-            asset_features: Features для each asset [batch, seq_len, num_assets, features]
+            asset_features: Features for each asset [batch, seq_len, num_assets, features]
             current_weights: Current portfolio weights [batch, num_assets]
-            volume_data: Volume data для assets [batch, seq_len, num_assets]
+            volume_data: Volume data for assets [batch, seq_len, num_assets]
             risk_tolerance: Risk tolerance level 0-1
         """
         batch_size, seq_len, num_assets, feature_dim = asset_features.shape
         
-        # Reshape для processing
+        # Reshape for processing
         reshaped_features = asset_features.view(batch_size * seq_len, num_assets, feature_dim)
         
         # Apply attention across assets
@@ -626,7 +626,7 @@ class CryptoPortfolioOptimizerModel(nn.Module):
         # Use last timestep
         current_features = attended_features[:, -1, :, :]  # [batch, num_assets, d_model]
         
-        # Estimate expected returns и risks для each asset
+        # Estimate expected returns and risks for each asset
         expected_returns = self.return_estimator(current_features.mean(dim=1))  # [batch, num_assets]
         expected_risks = self.risk_estimator(current_features.mean(dim=1))  # [batch, num_assets]
         
@@ -637,7 +637,7 @@ class CryptoPortfolioOptimizerModel(nn.Module):
         # Portfolio optimization
         portfolio_features = current_features.mean(dim=1)  # Average across assets
         
-        # Combine features для weight optimization
+        # Combine features for weight optimization
         optimization_input = torch.cat([
             portfolio_features,
             expected_returns,
@@ -686,7 +686,7 @@ def create_crypto_model(
     **kwargs
 ) -> nn.Module:
     """
-    Factory function для создания crypto attention models.
+    Factory function for creation crypto attention models.
     
     Args:
         model_type: Type of model ("price_predictor", "signal_generator", "risk_assessor", "portfolio_optimizer")

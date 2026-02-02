@@ -1,8 +1,8 @@
 """
-Cross-Attention механизм для мульти-модального анализа в крипто-торговле.
-Позволяет моделям учитывать взаимодействия между различными источниками данных.
+Cross-Attention механизм for multi-modal анализа in crypto trading.
+Allows models to account for interactions between different data sources.
 
-Enterprise cross-attention для fusion of multi-modal financial data.
+Enterprise cross-attention for fusion of multi-modal financial data.
 """
 
 import math
@@ -22,27 +22,27 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CrossAttentionConfig(AttentionConfig):
-    """Конфигурация для Cross-Attention механизма."""
+    """Configuration for Cross-Attention механизма."""
     # Cross-attention specific parameters
-    use_symmetric_attention: bool = False  # Симметричное внимание между модальностями
-    use_gated_fusion: bool = True  # Gated fusion для контроля информационного потока
-    fusion_dropout: float = 0.1  # Dropout для fusion layer
-    use_temperature_scaling: bool = True  # Temperature scaling для attention scores
+    use_symmetric_attention: bool = False  # Symmetric attention between modalities
+    use_gated_fusion: bool = True  # Gated fusion for контроля information stream
+    fusion_dropout: float = 0.1  # Dropout for fusion layer
+    use_temperature_scaling: bool = True  # Temperature scaling for attention scores
     temperature: float = 1.0
     
     # Multi-modal parameters
-    use_modality_embeddings: bool = True  # Embeddings для различных модальностей
-    num_modalities: int = 3  # Количество модальностей (price, volume, news, etc.)
-    modality_dim: int = 64  # Размерность modality embeddings
+    use_modality_embeddings: bool = True  # Embeddings for various модальностей
+    num_modalities: int = 3  # Number модальностей (price, volume, news, etc.)
+    modality_dim: int = 64  # Dimension modality embeddings
     
     # Cross-asset attention
     use_cross_asset: bool = True  # Cross-asset attention patterns
-    num_assets: int = 10  # Количество активов в портфеле
+    num_assets: int = 10  # Number assets in портфеле
     asset_embedding_dim: int = 32
     
     # Temporal cross-attention
-    use_temporal_cross: bool = True  # Cross-attention между временными периодами
-    temporal_window_sizes: List[int] = None  # Размеры временных окон
+    use_temporal_cross: bool = True  # Cross-attention between временными периодами
+    temporal_window_sizes: List[int] = None  # Размеры temporal окон
     
     def __post_init__(self):
         super().__post_init__()
@@ -52,14 +52,14 @@ class CrossAttentionConfig(AttentionConfig):
 
 class CrossAttention(nn.Module):
     """
-    Cross-Attention механизм для мульти-модального анализа.
+    Cross-Attention механизм for multi-modal анализа.
     
     Features:
-    - Cross-modal attention между различными типами данных
-    - Gated fusion для selective information integration
-    - Temperature scaling для attention sharpening/smoothing
+    - Cross-modal attention between various типами data
+    - Gated fusion for selective information integration
+    - Temperature scaling for attention sharpening/smoothing
     - Symmetric attention (опционально)
-    - Modality embeddings для учета типа данных
+    - Modality embeddings for consideration типа data
     """
     
     def __init__(self, config: CrossAttentionConfig):
@@ -80,7 +80,7 @@ class CrossAttention(nn.Module):
             )
             self.fusion_dropout = nn.Dropout(config.fusion_dropout)
         
-        # Temperature parameter для attention scaling
+        # Temperature parameter for attention scaling
         if config.use_temperature_scaling:
             self.temperature = nn.Parameter(torch.tensor(config.temperature))
         
@@ -89,7 +89,7 @@ class CrossAttention(nn.Module):
             self.modality_embeddings = nn.Embedding(
                 config.num_modalities, config.modality_dim
             )
-            # Project modality embeddings к d_model
+            # Project modality embeddings to d_model
             self.modality_proj = nn.Linear(config.modality_dim, config.d_model)
         
         # Cross-asset embeddings
@@ -124,11 +124,11 @@ class CrossAttention(nn.Module):
         Args:
             query: Query modality [batch_size, query_len, d_model]
             key: Key modality [batch_size, key_len, d_model]
-            value: Value modality (если None, используется key)
-            query_modality: ID модальности для query [batch_size, query_len]
-            key_modality: ID модальности для key [batch_size, key_len]
+            value: Value modality (if None, используется key)
+            query_modality: ID modalities for query [batch_size, query_len]
+            key_modality: ID modalities for key [batch_size, key_len]
             asset_ids: Asset IDs [batch_size, seq_len]
-            temporal_windows: Различные временные окна данных
+            temporal_windows: Various temporal окна data
             attention_mask: Attention mask
             need_weights: Return attention weights
         """
@@ -138,7 +138,7 @@ class CrossAttention(nn.Module):
         batch_size, query_len, d_model = query.shape
         key_len = key.shape[1]
         
-        # Augment с modality embeddings
+        # Augment with modality embeddings
         if self.config.use_modality_embeddings and query_modality is not None:
             query_mod_emb = self.modality_proj(
                 self.modality_embeddings(query_modality)
@@ -150,14 +150,14 @@ class CrossAttention(nn.Module):
                 self.modality_embeddings(key_modality)
             )
             key = key + key_mod_emb
-            if torch.equal(key, value):  # Value также нужно обновить
+            if torch.equal(key, value):  # Value also need to обновить
                 value = key
         
         # Cross-asset embeddings
         if self.config.use_cross_asset and asset_ids is not None:
             asset_emb = self.asset_proj(self.asset_embeddings(asset_ids))
             query = query + asset_emb
-            if key.shape[1] == query.shape[1]:  # Если key той же длины
+            if key.shape[1] == query.shape[1]:  # If key той же length
                 key = key + asset_emb
                 if torch.equal(key, value):
                     value = key
@@ -184,7 +184,7 @@ class CrossAttention(nn.Module):
         if need_weights:
             cross_attn_output, attention_weights = cross_attn_output
         
-        # Symmetric attention (если включено)
+        # Symmetric attention (if включено)
         if self.config.use_symmetric_attention:
             reverse_attn_output = self.key_attention(
                 query=key,
@@ -199,7 +199,7 @@ class CrossAttention(nn.Module):
         
         # Gated fusion
         if self.config.use_gated_fusion:
-            # Combine query и cross-attention output
+            # Combine query and cross-attention output
             combined = torch.cat([query, cross_attn_output], dim=-1)
             gate = self.fusion_gate(combined)
             cross_attn_output = gate * cross_attn_output + (1 - gate) * query
@@ -222,7 +222,7 @@ class CrossAttention(nn.Module):
 
 class CryptoCrossAttention(CrossAttention):
     """
-    Специализированный Cross-Attention для крипто-торговых стратегий.
+    Specialized Cross-Attention for crypto trading strategies.
     
     Additional Features:
     - Price-Volume cross-attention
@@ -246,7 +246,7 @@ class CryptoCrossAttention(CrossAttention):
         # News sentiment cross-attention
         self.news_price_attention = nn.MultiheadAttention(
             embed_dim=config.d_model,
-            num_heads=config.num_heads // 2,  # Меньше голов для news
+            num_heads=config.num_heads // 2,  # Меньше голов for news
             dropout=config.dropout,
             batch_first=True
         )
@@ -261,7 +261,7 @@ class CryptoCrossAttention(CrossAttention):
         
         # Cross-exchange attention
         self.exchange_weights = nn.Parameter(
-            torch.ones(5) / 5  # 5 основных бирж
+            torch.ones(5) / 5  # 5 main бирж
         )
         
         # Social sentiment fusion
@@ -269,7 +269,7 @@ class CryptoCrossAttention(CrossAttention):
         
         # Market regime aware fusion
         self.regime_gate = nn.Sequential(
-            nn.Linear(config.d_model + 10, config.d_model),  # +10 для regime features
+            nn.Linear(config.d_model + 10, config.d_model),  # +10 for regime features
             nn.Tanh(),
             nn.Linear(config.d_model, config.d_model),
             nn.Sigmoid()
@@ -312,9 +312,9 @@ class CryptoCrossAttention(CrossAttention):
         
         # News-Price cross-attention
         if news_embeddings is not None:
-            # Align news sequence length с price sequence
+            # Align news sequence length with price sequence
             if news_embeddings.shape[1] != seq_len:
-                # Interpolate или repeat news embeddings
+                # Interpolate or repeat news embeddings
                 news_embeddings = F.interpolate(
                     news_embeddings.transpose(1, 2),
                     size=seq_len,
@@ -326,7 +326,7 @@ class CryptoCrossAttention(CrossAttention):
                 key=news_embeddings,
                 value=news_embeddings
             )
-            outputs.append(news_output * 0.5)  # Lower weight для news
+            outputs.append(news_output * 0.5)  # Lower weight for news
         
         # Order book cross-attention
         if orderbook_data is not None:
@@ -376,10 +376,10 @@ class CryptoCrossAttention(CrossAttention):
 
 class MultiModalCrossAttention(nn.Module):
     """
-    Multi-modal cross-attention для fusion нескольких типов данных одновременно.
+    Multi-modal cross-attention for fusion нескольких типов data одновременно.
     
     Features:
-    - Simultaneous cross-attention между N модальностями
+    - Simultaneous cross-attention between N modalities
     - Learnable fusion weights
     - Modality-specific transformations
     - Hierarchical attention (coarse -> fine)
@@ -391,14 +391,14 @@ class MultiModalCrossAttention(nn.Module):
         self.modalities = modalities
         self.num_modalities = len(modalities)
         
-        # Cross-attention для каждой пары модальностей
+        # Cross-attention for each пары модальностей
         self.cross_attentions = nn.ModuleDict()
         for i, mod1 in enumerate(modalities):
             for j, mod2 in enumerate(modalities):
                 if i != j:  # Skip self-attention
                     self.cross_attentions[f"{mod1}_to_{mod2}"] = CrossAttention(config)
         
-        # Fusion weights для комбинирования результатов
+        # Fusion weights for комбинирования results
         self.fusion_weights = nn.Parameter(
             torch.ones(self.num_modalities) / self.num_modalities
         )
@@ -426,9 +426,9 @@ class MultiModalCrossAttention(nn.Module):
         Multi-modal cross-attention forward.
         
         Args:
-            modality_data: Dictionary с данными для каждой модальности
+            modality_data: Dictionary with данными for each modalities
                           {"price": tensor, "volume": tensor, "news": tensor, ...}
-            attention_masks: Masks для каждой модальности (optional)
+            attention_masks: Masks for each modalities (optional)
             need_weights: Return attention weights
         """
         if attention_masks is None:
@@ -442,7 +442,7 @@ class MultiModalCrossAttention(nn.Module):
             else:
                 projected_data[modality] = data
         
-        # Cross-attention между всеми парами модальностей
+        # Cross-attention between всеми pairs модальностей
         cross_attention_outputs = {}
         attention_weights_dict = {}
         
@@ -474,7 +474,7 @@ class MultiModalCrossAttention(nn.Module):
                         
                         modality_outputs.append(cross_output)
             
-            # Combine outputs для данной query модальности
+            # Combine outputs for данной query modalities
             if len(modality_outputs) > 1:
                 combined = torch.stack(modality_outputs, dim=0)
                 # Weighted combination
@@ -496,7 +496,7 @@ class MultiModalCrossAttention(nn.Module):
                 concatenated = torch.cat(all_outputs, dim=-1)
                 final_output = self.final_fusion(concatenated)
             else:
-                # Fallback к первой доступной модальности
+                # Fallback to первой доступной modalities
                 final_output = next(iter(modality_data.values()))
         else:
             final_output = next(iter(modality_data.values()))
@@ -513,7 +513,7 @@ def create_cross_attention_layer(
     **kwargs
 ) -> nn.Module:
     """
-    Factory function для создания различных типов cross-attention.
+    Factory function for creation various типов cross-attention.
     
     Args:
         d_model: Model dimension

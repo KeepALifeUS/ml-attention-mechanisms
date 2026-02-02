@@ -1,8 +1,8 @@
 """
-Многоголовочный механизм внимания для крипто-торговых ML моделей.
-Оптимизированная реализация Scaled Dot-Product Attention с поддержкой Flash Attention.
+Multi-head механизм attention for crypto trading ML models.
+Optimized implementation Scaled Dot-Product Attention with поддержкой Flash Attention.
 
-Enterprise-grade архитектура с production optimizations для HFT.
+Enterprise-grade architecture with production optimizations for HFT.
 """
 
 import math
@@ -20,14 +20,14 @@ try:
     FLASH_ATTN_AVAILABLE = True
 except ImportError:
     FLASH_ATTN_AVAILABLE = False
-    warnings.warn("Flash Attention не доступен. Используется стандартная реализация.")
+    warnings.warn("Flash Attention not available. Используется стандартная implementation.")
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class AttentionConfig:
-    """Конфигурация для механизма внимания."""
+    """Configuration for механизма attention."""
     d_model: int = 512
     num_heads: int = 8
     dropout: float = 0.1
@@ -40,9 +40,9 @@ class AttentionConfig:
     use_bias: bool = True
     
     def __post_init__(self):
-        """Валидация и настройка конфигурации."""
+        """Validation and configuration configuration."""
         if self.d_model % self.num_heads != 0:
-            raise ValueError(f"d_model ({self.d_model}) должен быть кратен num_heads ({self.num_heads})")
+            raise ValueError(f"d_model ({self.d_model}) should be divisible by num_heads ({self.num_heads})")
         
         self.head_dim = self.d_model // self.num_heads
         
@@ -50,17 +50,17 @@ class AttentionConfig:
             self.scale_factor = self.head_dim ** -0.5
         
         if self.use_flash_attn and not FLASH_ATTN_AVAILABLE:
-            logger.warning("Flash Attention запрошен, но недоступен. Используется стандартная реализация.")
+            logger.warning("Flash Attention запрошен, but unavailable. Используется стандартная implementation.")
             self.use_flash_attn = False
 
 
 class MultiHeadAttention(nn.Module):
     """
-    Многоголовочный механизм внимания с оптимизациями для крипто-торговли.
+    Multi-head механизм attention with оптимизациями for crypto trading.
     
     Features:
     - Scaled Dot-Product Attention
-    - Flash Attention для эффективности
+    - Flash Attention for эффективности
     - Поддержка causal masking
     - Rotary Position Embeddings (опционально)
     - Mixed precision training
@@ -81,15 +81,15 @@ class MultiHeadAttention(nn.Module):
         self.attention_dropout = nn.Dropout(config.attention_dropout)
         self.output_dropout = nn.Dropout(config.dropout)
         
-        # Rotary Position Embeddings (если нужны)
+        # Rotary Position Embeddings (if needed)
         if config.use_rotary_pos_emb:
             self.rotary_emb = RotaryPositionalEmbedding(config.head_dim, config.max_seq_len)
         
-        # Инициализация весов
+        # Initialize weights
         self._init_weights()
         
     def _init_weights(self):
-        """Инициализация весов по Xavier/Glorot."""
+        """Initialize weights by Xavier/Glorot."""
         for module in [self.q_proj, self.k_proj, self.v_proj, self.o_proj]:
             nn.init.xavier_uniform_(module.weight)
             if module.bias is not None:
@@ -106,20 +106,20 @@ class MultiHeadAttention(nn.Module):
         return_attention_weights: bool = False,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        Forward pass многоголовочного внимания.
+        Forward pass multi-head attention.
         
         Args:
             query: Query tensor [batch_size, seq_len, d_model]
-            key: Key tensor [batch_size, seq_len, d_model] (None для self-attention)
-            value: Value tensor [batch_size, seq_len, d_model] (None для self-attention)
+            key: Key tensor [batch_size, seq_len, d_model] (None for self-attention)
+            value: Value tensor [batch_size, seq_len, d_model] (None for self-attention)
             attention_mask: Attention mask [batch_size, seq_len, seq_len]
             key_padding_mask: Key padding mask [batch_size, seq_len]
             need_weights: Return attention weights
-            return_attention_weights: Legacy parameter для need_weights
+            return_attention_weights: Legacy parameter for need_weights
             
         Returns:
-            output: Выходной тензор [batch_size, seq_len, d_model]
-            attention_weights: Веса внимания (если need_weights=True)
+            output: Output tensor [batch_size, seq_len, d_model]
+            attention_weights: Weights attention (if need_weights=True)
         """
         if key is None:
             key = query
@@ -133,16 +133,16 @@ class MultiHeadAttention(nn.Module):
         K = self.k_proj(key)    # [B, S, D]
         V = self.v_proj(value)  # [B, S, D]
         
-        # Reshape для многоголовочного внимания
+        # Reshape for multi-head attention
         Q = Q.view(batch_size, seq_len, self.config.num_heads, self.config.head_dim)
         K = K.view(batch_size, -1, self.config.num_heads, self.config.head_dim)
         V = V.view(batch_size, -1, self.config.num_heads, self.config.head_dim)
         
-        # Apply rotary embeddings если включены
+        # Apply rotary embeddings if включены
         if self.config.use_rotary_pos_emb:
             Q, K = self.rotary_emb(Q, K)
         
-        # Выбор реализации внимания
+        # Select implementations attention
         if self.config.use_flash_attn and FLASH_ATTN_AVAILABLE:
             output, attention_weights = self._flash_attention(Q, K, V, attention_mask)
         else:
@@ -166,13 +166,13 @@ class MultiHeadAttention(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         key_padding_mask: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Стандартная реализация Scaled Dot-Product Attention."""
-        # Transpose для batch матричного умножения
+        """Standard implementation Scaled Dot-Product Attention."""
+        # Transpose for batch matrix multiplication
         Q = Q.transpose(1, 2)  # [B, H, L, D_h]
         K = K.transpose(1, 2)  # [B, H, S, D_h]
         V = V.transpose(1, 2)  # [B, H, S, D_h]
         
-        # Вычисление scores
+        # Computation scores
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.config.scale_factor
         
         # Apply attention mask
@@ -186,14 +186,14 @@ class MultiHeadAttention(nn.Module):
             key_padding_mask = key_padding_mask.unsqueeze(1).unsqueeze(1)
             scores = scores.masked_fill(key_padding_mask, float('-inf'))
         
-        # Causal masking для autoregressive models
+        # Causal masking for autoregressive models
         if self.config.causal:
             seq_len = Q.size(-2)
             causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
             causal_mask = causal_mask.to(scores.device)
             scores = scores.masked_fill(causal_mask, float('-inf'))
         
-        # Softmax и dropout
+        # Softmax and dropout
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.attention_dropout(attention_weights)
         
@@ -213,7 +213,7 @@ class MultiHeadAttention(nn.Module):
         V: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Flash Attention реализация для эффективности."""
+        """Flash Attention implementation for эффективности."""
         # Flash attention expects [batch, seq_len, num_heads, head_dim]
         output = flash_attn_func(
             Q, K, V,
@@ -226,14 +226,14 @@ class MultiHeadAttention(nn.Module):
         batch_size, seq_len = output.shape[:2]
         output = output.view(batch_size, seq_len, -1)
         
-        # Flash attention не возвращает веса внимания
+        # Flash attention not returns weights attention
         attention_weights = None
         
         return output, attention_weights
 
 
 class RotaryPositionalEmbedding(nn.Module):
-    """Rotary Position Embeddings (RoPE) для улучшенного позиционного кодирования."""
+    """Rotary Position Embeddings (RoPE) for улучшенного positional encoding."""
     
     def __init__(self, head_dim: int, max_seq_len: int = 2048, base: float = 10000.0):
         super().__init__()
@@ -245,13 +245,13 @@ class RotaryPositionalEmbedding(nn.Module):
         inv_freq = 1.0 / (base ** (torch.arange(0, head_dim, 2).float() / head_dim))
         self.register_buffer('inv_freq', inv_freq)
         
-        # Cache для косинусов и синусов
+        # Cache for cosines and sines
         self._cached_cos = None
         self._cached_sin = None
         self._cached_seq_len = 0
     
     def _compute_cos_sin(self, seq_len: int, device: torch.device, dtype: torch.dtype):
-        """Вычисление косинусов и синусов для позиций."""
+        """Computation cosines and sines for позиций."""
         if seq_len > self._cached_seq_len or self._cached_cos is None:
             self._cached_seq_len = max(seq_len, self._cached_seq_len)
             
@@ -271,7 +271,7 @@ class RotaryPositionalEmbedding(nn.Module):
         )
     
     def forward(self, Q: torch.Tensor, K: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Применение RoPE к query и key тензорам."""
+        """Apply RoPE to query and key тензорам."""
         seq_len = Q.shape[1]
         
         cos, sin = self._compute_cos_sin(seq_len, Q.device, Q.dtype)
@@ -283,8 +283,8 @@ class RotaryPositionalEmbedding(nn.Module):
         return Q_rotated, K_rotated
     
     def _apply_rotary_emb(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-        """Применение rotary embedding к тензору."""
-        # Split последнюю размерность пополам
+        """Apply rotary embedding to тензору."""
+        # Split last dimension пополам
         x1, x2 = x[..., : x.shape[-1] // 2], x[..., x.shape[-1] // 2 :]
         
         # Apply rotation
@@ -296,7 +296,7 @@ class RotaryPositionalEmbedding(nn.Module):
 
 class CryptoMultiHeadAttention(MultiHeadAttention):
     """
-    Специализированный Multi-Head Attention для крипто-торговли.
+    Specialized Multi-Head Attention for crypto trading.
     
     Features:
     - Volume-weighted attention
@@ -321,10 +321,10 @@ class CryptoMultiHeadAttention(MultiHeadAttention):
         market_regime: Optional[torch.Tensor] = None,
         **kwargs
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        """Forward с учетом крипто-специфичных факторов."""
+        """Forward with consideration crypto-specific факторов."""
         output = super().forward(query, key, value, **kwargs)
         
-        # Volume weighting (если доступен volume)
+        # Volume weighting (if available volume)
         if self.use_volume_weighting and volume is not None:
             volume_weights = torch.sigmoid(self.volume_proj(volume.unsqueeze(-1)))
             if isinstance(output, tuple):
@@ -336,16 +336,16 @@ class CryptoMultiHeadAttention(MultiHeadAttention):
 
 
 def create_attention_mask(seq_len: int, causal: bool = False) -> torch.Tensor:
-    """Создание attention mask."""
+    """Create attention mask."""
     if causal:
         mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
-        return ~mask  # Инвертируем для корректной маскировки
+        return ~mask  # Инвертируем for корректной маскировки
     else:
         return torch.ones(seq_len, seq_len).bool()
 
 
 def benchmark_attention_performance():
-    """Benchmark производительности различных реализаций внимания."""
+    """Benchmark performance various реализаций attention."""
     import time
     
     config = AttentionConfig(d_model=512, num_heads=8)
@@ -365,7 +365,7 @@ def benchmark_attention_performance():
     
     print(f"Standard Attention: {std_time:.4f}s")
     
-    # Flash attention (если доступен)
+    # Flash attention (if available)
     if FLASH_ATTN_AVAILABLE:
         config_flash = AttentionConfig(d_model=512, num_heads=8, use_flash_attn=True)
         attn_flash = MultiHeadAttention(config_flash)
@@ -380,7 +380,7 @@ def benchmark_attention_performance():
 
 
 if __name__ == "__main__":
-    # Тестирование конфигурации
+    # Testing configuration
     config = AttentionConfig(
         d_model=512,
         num_heads=8,
@@ -389,7 +389,7 @@ if __name__ == "__main__":
         causal=False
     )
     
-    # Создание модели
+    # Create model
     attention = MultiHeadAttention(config)
     
     # Test forward pass

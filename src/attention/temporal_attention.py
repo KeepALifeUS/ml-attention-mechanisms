@@ -1,8 +1,8 @@
 """
-Temporal Attention механизм для анализа временных зависимостей в крипто-торговле.
-Специализирован для обработки временных рядов с различными временными паттернами.
+Temporal Attention механизм for анализа temporal зависимостей in crypto trading.
+Specialized for processing time series with various temporal patterns.
 
-Production-optimized temporal attention для real-time trading decisions.
+Production-optimized temporal attention for real-time trading decisions.
 """
 
 import math
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TemporalAttentionConfig(AttentionConfig):
-    """Конфигурация для Temporal Attention механизма."""
+    """Configuration for Temporal Attention механизма."""
     # Temporal-specific parameters
     use_time_embeddings: bool = True  # Time-based embeddings
     time_embedding_dim: int = 64
@@ -35,7 +35,7 @@ class TemporalAttentionConfig(AttentionConfig):
     
     # Temporal decay
     use_temporal_decay: bool = True
-    decay_factor: float = 0.95  # Exponential decay для older timesteps
+    decay_factor: float = 0.95  # Exponential decay for older timesteps
     decay_type: str = "exponential"  # "exponential", "linear", "learned"
     
     # Cyclical patterns
@@ -46,7 +46,7 @@ class TemporalAttentionConfig(AttentionConfig):
     
     # Trend awareness
     use_trend_attention: bool = True
-    trend_window_size: int = 20  # Window для trend calculation
+    trend_window_size: int = 20  # Window for trend calculation
     
     # Seasonality
     use_seasonal_patterns: bool = True
@@ -65,7 +65,7 @@ class TemporalAttentionConfig(AttentionConfig):
 
 
 class TemporalPositionalEncoding(nn.Module):
-    """Temporal positional encoding с support для различных временных паттернов."""
+    """Temporal positional encoding with support for various temporal patterns."""
     
     def __init__(self, config: TemporalAttentionConfig):
         super().__init__()
@@ -88,7 +88,7 @@ class TemporalPositionalEncoding(nn.Module):
             self.weekly_encoding = self._create_cyclical_encoding(config.weekly_cycles)
             self.monthly_encoding = self._create_cyclical_encoding(config.monthly_cycles)
             
-            # Projections для cyclical encodings
+            # Projections for cyclical encodings
             self.cyclical_proj = nn.Linear(3 * 2, config.d_model)  # 3 cycles * 2 (sin, cos)
         
         # Seasonal encodings
@@ -99,7 +99,7 @@ class TemporalPositionalEncoding(nn.Module):
             })
     
     def _create_sinusoidal_encoding(self, max_len: int, d_model: int) -> torch.Tensor:
-        """Создание sinusoidal positional encoding."""
+        """Create sinusoidal positional encoding."""
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         
@@ -113,7 +113,7 @@ class TemporalPositionalEncoding(nn.Module):
         return pe
     
     def _create_cyclical_encoding(self, cycle_length: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Создание cyclical encoding (sin, cos) для заданного цикла."""
+        """Create cyclical encoding (sin, cos) for заданного цикла."""
         positions = torch.arange(cycle_length, dtype=torch.float)
         angles = 2 * math.pi * positions / cycle_length
         return torch.sin(angles), torch.cos(angles)
@@ -159,8 +159,8 @@ class TemporalPositionalEncoding(nn.Module):
         return pos_encoding
     
     def _compute_cyclical_features(self, timestamps: torch.Tensor) -> torch.Tensor:
-        """Compute cyclical features от timestamps."""
-        # Convert Unix timestamps к hours, days, etc.
+        """Compute cyclical features from timestamps."""
+        # Convert Unix timestamps to hours, days, etc.
         hours = (timestamps / 3600) % self.config.daily_cycles
         days = (timestamps / (3600 * 24)) % self.config.weekly_cycles
         month_days = (timestamps / (3600 * 24)) % self.config.monthly_cycles
@@ -195,11 +195,11 @@ class TemporalPositionalEncoding(nn.Module):
 
 class TemporalAttention(nn.Module):
     """
-    Temporal Attention механизм для временных рядов в крипто-торговле.
+    Temporal Attention механизм for temporal рядов in crypto trading.
     
     Features:
     - Multi-timeframe attention
-    - Temporal decay для older observations
+    - Temporal decay for older observations
     - Cyclical pattern awareness (daily, weekly, monthly)
     - Trend-aware attention weights
     - Seasonal pattern recognition
@@ -258,7 +258,7 @@ class TemporalAttention(nn.Module):
         decay_factor: float, 
         decay_type: str
     ) -> torch.Tensor:
-        """Создание temporal decay weights."""
+        """Create temporal decay weights."""
         positions = torch.arange(max_len, dtype=torch.float)
         
         if decay_type == "exponential":
@@ -370,11 +370,11 @@ class TemporalAttention(nn.Module):
         window_size: int, 
         device: torch.device
     ) -> torch.Tensor:
-        """Create attention mask для specific timeframe window."""
+        """Create attention mask for specific timeframe window."""
         mask = torch.zeros(seq_len, seq_len, dtype=torch.bool, device=device)
         
         for i in range(seq_len):
-            # Allow attention в пределах window
+            # Allow attention in пределах window
             start_idx = max(0, i - window_size + 1)
             end_idx = min(seq_len, i + window_size)
             mask[i, start_idx:end_idx] = True
@@ -384,7 +384,7 @@ class TemporalAttention(nn.Module):
 
 class CryptoTemporalAttention(TemporalAttention):
     """
-    Specialized Temporal Attention для крипто-торговых паттернов.
+    Specialized Temporal Attention for crypto trading patterns.
     
     Additional Features:
     - Market session awareness (Asian, European, US)
@@ -401,7 +401,7 @@ class CryptoTemporalAttention(TemporalAttention):
         self.session_embedding = nn.Embedding(3, config.d_model // 8)  # 3 sessions
         
         # Crypto-specific cycle embeddings
-        self.halving_cycle_proj = nn.Linear(2, config.d_model // 16)  # Sin/cos для 4-year cycle
+        self.halving_cycle_proj = nn.Linear(2, config.d_model // 16)  # Sin/cos for 4-year cycle
         
         # Weekend effect modeling
         self.weekend_gate = nn.Sequential(
@@ -430,7 +430,7 @@ class CryptoTemporalAttention(TemporalAttention):
         **kwargs
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        Forward с crypto-specific temporal features.
+        Forward with crypto-specific temporal features.
         
         Args:
             x: Price features [batch_size, seq_len, d_model]
@@ -479,7 +479,7 @@ class CryptoTemporalAttention(TemporalAttention):
     def _compute_halving_cycle_features(self, timestamps: torch.Tensor) -> torch.Tensor:
         """Compute Bitcoin halving cycle features."""
         # Bitcoin halving approximately every 4 years (1461 days)
-        halving_period = 4 * 365 * 24 * 3600  # 4 years в секундах
+        halving_period = 4 * 365 * 24 * 3600  # 4 years in секундах
         
         cycle_position = (timestamps % halving_period) / halving_period
         
@@ -490,8 +490,8 @@ class CryptoTemporalAttention(TemporalAttention):
     
     def _compute_weekend_mask(self, timestamps: torch.Tensor) -> torch.Tensor:
         """Compute weekend mask (lower activity periods)."""
-        # Convert к day of week (0=Monday, 6=Sunday)
-        day_of_week = ((timestamps / (24 * 3600)) + 4) % 7  # +4 для correct offset
+        # Convert to day of week (0=Monday, 6=Sunday)
+        day_of_week = ((timestamps / (24 * 3600)) + 4) % 7  # +4 for correct offset
         
         # Weekend: Saturday (5) and Sunday (6)
         weekend_mask = (day_of_week >= 5).float()
@@ -503,8 +503,8 @@ class CryptoTemporalAttention(TemporalAttention):
         current_timestamps: torch.Tensor,
         news_timestamps: torch.Tensor
     ) -> torch.Tensor:
-        """Compute temporal decay для news events."""
-        # Time since news event (в часах)
+        """Compute temporal decay for news events."""
+        # Time since news event (in часах)
         time_diff = (current_timestamps - news_timestamps) / 3600
         
         # Exponential decay (news impact decreases over time)
@@ -520,7 +520,7 @@ def create_temporal_attention_layer(
     **kwargs
 ) -> nn.Module:
     """
-    Factory для создания temporal attention layers.
+    Factory for creation temporal attention layers.
     
     Args:
         d_model: Model dimension
@@ -593,7 +593,7 @@ if __name__ == "__main__":
     print(f"Crypto: {sum(p.numel() for p in crypto_temporal.parameters())}")
     
     # Memory usage test
-    print(f"\nMemory efficient test с длинной последовательностью:")
+    print(f"\nMemory efficient test with длинной последовательностью:")
     long_x = torch.randn(2, 2048, config.d_model)
     long_timestamps = torch.randint(1640995200, 1672531200, (2, 2048))
     
@@ -601,8 +601,8 @@ if __name__ == "__main__":
         long_output = temporal_attn(long_x, timestamps=long_timestamps)
         print(f"Long sequence output: {long_output.shape}")
     except RuntimeError as e:
-        print(f"Memory error с длинной последовательностью: {e}")
-        # Use smaller batch для testing
+        print(f"Memory error with длинной последовательностью: {e}")
+        # Use smaller batch for testing
         small_long_output = temporal_attn(
             long_x[:1], timestamps=long_timestamps[:1]
         )

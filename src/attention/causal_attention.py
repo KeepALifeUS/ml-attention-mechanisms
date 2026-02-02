@@ -1,8 +1,8 @@
 """
-Causal Attention механизм для autoregressive моделей в крипто-торговле.
-Обеспечивает соблюдение causal constraints для real-time inference.
+Causal Attention механизм for autoregressive models in crypto trading.
+Ensures compliance causal constraints for real-time inference.
 
-Production causal attention для online learning в trading systems.
+Production causal attention for online learning in trading systems.
 """
 
 import math
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CausalAttentionConfig(AttentionConfig):
-    """Конфигурация для Causal Attention механизма."""
+    """Configuration for Causal Attention механизма."""
     # Causal attention is always True
     causal: bool = True
     
@@ -34,7 +34,7 @@ class CausalAttentionConfig(AttentionConfig):
     use_sliding_window: bool = False
     window_size: int = 256
     
-    # Blockwise causal attention для efficiency
+    # Blockwise causal attention for efficiency
     use_blockwise_causal: bool = False
     block_size: int = 64
     
@@ -45,7 +45,7 @@ class CausalAttentionConfig(AttentionConfig):
     # Future masking with lookahead bias prevention
     use_strict_causality: bool = True  # Prevent any future information leakage
     
-    # KV-cache для inference optimization
+    # KV-cache for inference optimization
     use_kv_cache: bool = True
     cache_size: int = 1024
     
@@ -55,13 +55,13 @@ class CausalAttentionConfig(AttentionConfig):
 
 
 class CausalMask:
-    """Utility class для создания различных causal masks."""
+    """Utility class for creation various causal masks."""
     
     @staticmethod
     def create_causal_mask(seq_len: int, device: torch.device) -> torch.Tensor:
         """Standard lower triangular causal mask."""
         mask = torch.triu(torch.ones(seq_len, seq_len, device=device), diagonal=1)
-        return mask == 0  # True для allowed positions
+        return mask == 0  # True for allowed positions
     
     @staticmethod
     def create_sliding_window_mask(
@@ -85,7 +85,7 @@ class CausalMask:
         block_size: int, 
         device: torch.device
     ) -> torch.Tensor:
-        """Blockwise causal mask для efficiency."""
+        """Blockwise causal mask for efficiency."""
         mask = torch.zeros(seq_len, seq_len, dtype=torch.bool, device=device)
         
         num_blocks = math.ceil(seq_len / block_size)
@@ -127,7 +127,7 @@ class CausalMask:
 
 
 class KVCache:
-    """Key-Value cache для efficient causal attention inference."""
+    """Key-Value cache for efficient causal attention inference."""
     
     def __init__(self, batch_size: int, num_heads: int, head_dim: int, max_len: int):
         self.batch_size = batch_size
@@ -141,11 +141,11 @@ class KVCache:
         self.current_len = 0
     
     def update(self, keys: torch.Tensor, values: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Update cache с новыми keys/values и return full cached sequences."""
+        """Update cache with новыми keys/values and return full cached sequences."""
         seq_len = keys.shape[2]
         
         if self.current_len + seq_len > self.max_len:
-            # Shift cache если превышен лимит
+            # Shift cache if exceeded limit
             shift_amount = self.current_len + seq_len - self.max_len
             self.keys[:, :, :-shift_amount] = self.keys[:, :, shift_amount:]
             self.values[:, :, :-shift_amount] = self.values[:, :, shift_amount:]
@@ -168,7 +168,7 @@ class KVCache:
         self.values.zero_()
     
     def to(self, device: torch.device):
-        """Move cache к device."""
+        """Move cache to device."""
         self.keys = self.keys.to(device)
         self.values = self.values.to(device)
         return self
@@ -176,13 +176,13 @@ class KVCache:
 
 class CausalAttention(nn.Module):
     """
-    Causal Attention механизм для autoregressive models.
+    Causal Attention механизм for autoregressive models.
     
     Features:
     - Strict causal masking (no future information leakage)
-    - Sliding window attention для efficiency
+    - Sliding window attention for efficiency
     - Blockwise causal attention patterns
-    - KV-cache для inference optimization
+    - KV-cache for inference optimization
     - Memory efficient attention computation
     - Gradient checkpointing support
     """
@@ -194,10 +194,10 @@ class CausalAttention(nn.Module):
         # Base attention mechanism
         self.attention = MultiHeadAttention(config)
         
-        # Pre-compute и register causal masks
+        # Pre-compute and register causal masks
         self._register_causal_masks()
         
-        # KV-cache для inference
+        # KV-cache for inference
         if config.use_kv_cache:
             self.kv_cache: Optional[KVCache] = None
         
@@ -206,7 +206,7 @@ class CausalAttention(nn.Module):
             self.causality_loss = nn.Parameter(torch.tensor(0.0))
     
     def _register_causal_masks(self):
-        """Pre-compute и register различные causal masks."""
+        """Pre-compute and register various causal masks."""
         max_seq_len = self.config.max_seq_len
         
         # Standard causal mask
@@ -259,7 +259,7 @@ class CausalAttention(nn.Module):
         Args:
             x: Input tensor [batch_size, seq_len, d_model]
             attention_mask: Additional attention mask
-            use_cache: Use KV-cache для inference
+            use_cache: Use KV-cache for inference
             past_key_values: Previous KV-cache state
             need_weights: Return attention weights
             
@@ -273,7 +273,7 @@ class CausalAttention(nn.Module):
         # Get causal mask
         causal_mask = self._get_causal_mask(seq_len, x.device)
         
-        # Combine с additional mask если provided
+        # Combine with additional mask if provided
         if attention_mask is not None:
             if attention_mask.dim() == 2:
                 attention_mask = attention_mask.unsqueeze(0).unsqueeze(0)
@@ -281,7 +281,7 @@ class CausalAttention(nn.Module):
         else:
             combined_mask = causal_mask
         
-        # Initialize или update KV-cache
+        # Initialize or update KV-cache
         if use_cache:
             if past_key_values is None and self.config.use_kv_cache:
                 self.kv_cache = KVCache(
@@ -293,9 +293,9 @@ class CausalAttention(nn.Module):
             else:
                 self.kv_cache = past_key_values
         
-        # Attention computation с memory efficiency
+        # Attention computation with memory efficiency
         if self.config.use_memory_efficient and self.config.checkpoint_attention:
-            # Gradient checkpointing для memory efficiency
+            # Gradient checkpointing for memory efficiency
             output = torch.utils.checkpoint.checkpoint(
                 self._attention_forward,
                 x, combined_mask, need_weights
@@ -337,18 +337,18 @@ class CausalAttention(nn.Module):
         )
     
     def _compute_causality_penalty(self, attention_weights: Optional[torch.Tensor]) -> torch.Tensor:
-        """Compute penalty для violations of causality."""
+        """Compute penalty for violations of causality."""
         if attention_weights is None:
             return torch.tensor(0.0, device=self.causality_loss.device)
         
-        # Check для future information leakage
+        # Check for future information leakage
         batch_size, num_heads, seq_len, _ = attention_weights.shape
         
         # Create upper triangular mask (future positions)
         future_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
         future_mask = future_mask.to(attention_weights.device)
         
-        # Penalty для attention к future positions
+        # Penalty for attention to future positions
         future_attention = attention_weights.masked_select(future_mask)
         causality_penalty = future_attention.sum() * self.config.causality_strength
         
@@ -362,7 +362,7 @@ class CausalAttention(nn.Module):
         top_p: Optional[float] = None,
     ) -> torch.Tensor:
         """
-        Generate next token using causal attention (для inference).
+        Generate next token using causal attention (for inference).
         
         Args:
             current_sequence: Current sequence [batch_size, seq_len, d_model]
@@ -374,7 +374,7 @@ class CausalAttention(nn.Module):
             next_token: Next token prediction [batch_size, 1, d_model]
         """
         with torch.no_grad():
-            # Forward pass с cache
+            # Forward pass with cache
             output, self.kv_cache = self.forward(
                 current_sequence[:, -1:],  # Only процесс last token
                 use_cache=True,
@@ -396,7 +396,7 @@ class CausalAttention(nn.Module):
                 sorted_logits, sorted_indices = torch.sort(output, descending=True, dim=-1)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
                 
-                # Remove tokens с cumulative probability above threshold
+                # Remove tokens with cumulative probability above threshold
                 sorted_indices_to_remove = cumulative_probs > top_p
                 sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
                 sorted_indices_to_remove[..., 0] = 0
@@ -416,7 +416,7 @@ class CausalAttention(nn.Module):
 
 class CryptoCausalAttention(CausalAttention):
     """
-    Specialized Causal Attention для крипто-торговых моделей.
+    Specialized Causal Attention for crypto trading models.
     
     Additional Features:
     - Order execution causality (orders must be placed before execution)
@@ -454,13 +454,13 @@ class CryptoCausalAttention(CausalAttention):
         **kwargs
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
-        Forward с crypto-specific causal constraints.
+        Forward with crypto-specific causal constraints.
         
         Args:
             x: Input features [batch_size, seq_len, d_model]
             order_timestamps: Order placement timestamps
             execution_timestamps: Order execution timestamps  
-            risk_scores: Risk scores для каждого timestep
+            risk_scores: Risk scores for each timestep
         """
         batch_size, seq_len, d_model = x.shape
         
@@ -512,7 +512,7 @@ def create_causal_attention_layer(
     **kwargs
 ) -> nn.Module:
     """
-    Factory для создания causal attention layers.
+    Factory for creation causal attention layers.
     
     Args:
         d_model: Model dimension
@@ -557,7 +557,7 @@ if __name__ == "__main__":
     output = causal_attn(x)
     print(f"Standard Causal Attention output: {output.shape}")
     
-    # Forward с KV-cache
+    # Forward with KV-cache
     output_cached, kv_cache = causal_attn(x, use_cache=True)
     print(f"Cached Causal Attention output: {output_cached.shape}")
     print(f"KV-cache current length: {kv_cache.current_len}")
