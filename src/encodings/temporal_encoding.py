@@ -1,5 +1,5 @@
 """
-Temporal Encoding specialized for temporal рядов in crypto trading.
+Temporal Encoding specialized for temporal series in crypto trading.
 Accounts for market cyclicality, time zones, and trading activity patterns.
 
 Production temporal encodings for real-time trading systems.
@@ -70,7 +70,7 @@ class CyclicalTimeEncoding(nn.Module):
         super().__init__()
         self.config = config
         
-        # Cyclical projections for each temporal цикла
+        # Cyclical projections for each temporal cycle
         if config.use_cyclical_encoding:
             self.minute_proj = nn.Linear(2, config.d_model // 16)  # sin, cos
             self.hour_proj = nn.Linear(2, config.d_model // 8)
@@ -249,7 +249,7 @@ class MarketSessionEncoding(nn.Module):
         # Determine market sessions
         sessions = self._get_market_sessions(hours)
         
-        # Session overlaps (crypto is traded 24/7, but there is more активные periods)
+        # Session overlaps (crypto is traded 24/7, but there are more active periods)
         overlaps = self._get_session_overlaps(hours)
         
         # Weekend detection
@@ -584,7 +584,7 @@ if __name__ == "__main__":
     print(f"Session only: {sum(p.numel() for p in session_enc.parameters())}")
     print(f"Seasonality only: {sum(p.numel() for p in seasonality_enc.parameters())}")
     
-    # Test with various временными периодами
+    # Test with various time periods
     print(f"\nTesting various temporal periods:")
     
     # Intraday (5-minute data)

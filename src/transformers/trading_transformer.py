@@ -1,5 +1,5 @@
 """
-Trading Transformer architecture специально разработанная for crypto trading tasks.
+Trading Transformer architecture specifically designed for crypto trading tasks.
 Combines attention mechanisms with domain-specific optimizations for financial time series.
 
 Production trading transformer with real-time inference and risk management.
@@ -242,7 +242,7 @@ class MarketRegimeDetector(nn.Module):
             regime_adapted += transformed * regime_mask * regime_weight
         
         # Blend with original features
-        processed_x = x + regime_adapted * 0.2  # Moderate влияние
+        processed_x = x + regime_adapted * 0.2  # Moderate influence
         
         # Estimate confidence
         confidence = self.confidence_estimator(regime_probs)

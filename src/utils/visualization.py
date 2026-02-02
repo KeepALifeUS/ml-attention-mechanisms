@@ -1,6 +1,6 @@
 """
 Visualization utilities for attention mechanisms in crypto trading models.
-Создает heatmaps, attention flow diagrams and interactive visualizations.
+Creates heatmaps, attention flow diagrams and interactive visualizations.
 
 Production visualization tools for attention analysis and model debugging.
 """
@@ -53,7 +53,7 @@ class VisualizationConfig:
 
 class AttentionHeatmapVisualizer:
     """
-    Создает heatmap visualizations for attention weights.
+    Creates heatmap visualizations for attention weights.
     
     Features:
     - Multi-head attention heatmaps
@@ -467,7 +467,7 @@ class InteractiveAttentionVisualizer:
                 name=f'Head {head_idx + 1}',
                 colorscale='Viridis',
                 opacity=0.7,
-                visible=(head_idx == 0)  # Show only первый head initially
+                visible=(head_idx == 0)  # Show only first head initially
             ))
         
         # Add buttons for switching between heads

@@ -1,6 +1,6 @@
 """
-Self-Attention механизм for temporal рядов in crypto trading.
-Optimized implementation for sequence modeling with поддержкой temporal patterns.
+Self-Attention mechanism for temporal series in crypto trading.
+Optimized implementation for sequence modeling with support for temporal patterns.
 
 Production-ready self-attention with memory efficiency and real-time inference.
 """
@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SelfAttentionConfig(AttentionConfig):
-    """Configuration for Self-Attention with дополнительными parameters."""
+    """Configuration for Self-Attention with additional parameters."""
     use_layer_norm: bool = True
     layer_norm_eps: float = 1e-5
     use_residual: bool = True
     use_pre_norm: bool = True  # Pre-norm vs post-norm
-    use_gated_attention: bool = False  # Gated attention for контроля information stream
+    use_gated_attention: bool = False  # Gated attention for controlling information stream
     use_sparse_attention: bool = False  # Sparse attention patterns
     sparse_block_size: int = 64
     use_local_attention: bool = False  # Local attention window
@@ -42,7 +42,7 @@ class SelfAttentionConfig(AttentionConfig):
 
 class SelfAttention(nn.Module):
     """
-    Self-Attention механизм optimized for crypto temporal рядов.
+    Self-Attention mechanism optimized for crypto temporal series.
     
     Features:
     - Standard self-attention with residual connections
@@ -129,7 +129,7 @@ class SelfAttention(nn.Module):
         """Create temporal decay weights."""
         positions = torch.arange(seq_len, dtype=torch.float)
         weights = decay_rate ** positions
-        return weights.flip(0)  # More recent timesteps получают больший weight
+        return weights.flip(0)  # More recent timesteps get higher weight
     
     def forward(
         self,
@@ -167,7 +167,7 @@ class SelfAttention(nn.Module):
             seq_len, attention_mask, x.device
         )
         
-        # Apply temporal decay (if включен)
+        # Apply temporal decay (if enabled)
         if self.config.use_temporal_decay and hasattr(self, 'temporal_weights'):
             temporal_weights = self.temporal_weights[:seq_len].to(x.device)
             x = x * temporal_weights.view(1, -1, 1)
@@ -196,7 +196,7 @@ class SelfAttention(nn.Module):
                 self.volatility_proj(volatility.unsqueeze(-1)), dim=-1
             )  # [B, L, H]
             
-            # Применяем to each голове отдельно
+            # Apply to each head separately
             attn_output = attn_output.view(batch_size, seq_len, self.config.num_heads, -1)
             attn_output = attn_output * volatility_weights.unsqueeze(-1)
             attn_output = attn_output.view(batch_size, seq_len, d_model)
@@ -340,8 +340,8 @@ class CryptoSelfAttention(SelfAttention):
 
 class LinearSelfAttention(nn.Module):
     """
-    Linear complexity self-attention for very длинных последовательностей.
-    Основан on kernel trick for аппроксимации softmax attention.
+    Linear complexity self-attention for very long sequences.
+    Based on kernel trick for approximation of softmax attention.
     """
     
     def __init__(self, config: SelfAttentionConfig):
@@ -368,7 +368,7 @@ class LinearSelfAttention(nn.Module):
         # x: [B, H, L, D_h]
         projections = torch.matmul(x, self.random_features)  # [B, H, L, feature_dim]
         
-        # Split on косинусную and синусную части
+        # Split into cosine and sine parts
         cos_proj, sin_proj = torch.split(projections, self.feature_dim // 2, dim=-1)
         
         return torch.cat([
@@ -435,7 +435,7 @@ def create_self_attention_layer(
     **kwargs
 ) -> nn.Module:
     """
-    Factory function for creation various типов self-attention.
+    Factory function for creating various types of self-attention.
     
     Args:
         d_model: Model dimension

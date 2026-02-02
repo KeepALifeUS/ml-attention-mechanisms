@@ -1,6 +1,6 @@
 """
-Positional Encoding implementations for transformer архитектур in crypto trading.
-Includes sinusoidal, learned, relative and other варианты positional encoding.
+Positional Encoding implementations for transformer architectures in crypto trading.
+Includes sinusoidal, learned, relative and other variants of positional encoding.
 
 Production-ready positional encodings with efficiency optimizations.
 """
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PositionalEncodingConfig:
-    """Configuration for various типов positional encoding."""
+    """Configuration for various types positional encoding."""
     d_model: int = 512
     max_seq_len: int = 10000
     dropout: float = 0.1
@@ -156,7 +156,7 @@ class SinusoidalPositionalEncoding(nn.Module):
             # Create frequency bands input (possible customized for crypto data)
             freq_input = torch.randn(batch_size, seq_len, self.config.frequency_bands, device=x.device)
             freq_mod = self.freq_modulation(freq_input)
-            pos_encoding = pos_encoding + freq_mod * 0.1  # Small влияние
+            pos_encoding = pos_encoding + freq_mod * 0.1  # Small influence
         
         # Add positional encoding to input
         output = x + pos_encoding
@@ -408,7 +408,7 @@ class RoPE(nn.Module):
     
     def _apply_rope(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
         """Apply rotary position embedding."""
-        # Split x in две halves
+        # Split x into two halves
         x1, x2 = x.chunk(2, dim=-1)
         
         # Apply rotation

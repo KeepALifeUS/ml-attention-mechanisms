@@ -1,6 +1,6 @@
 """
-Multi-head механизм attention for crypto trading ML models.
-Optimized implementation Scaled Dot-Product Attention with поддержкой Flash Attention.
+Multi-head mechanism attention for crypto trading ML models.
+Optimized implementation Scaled Dot-Product Attention with support for Flash Attention.
 
 Enterprise-grade architecture with production optimizations for HFT.
 """
@@ -20,14 +20,14 @@ try:
     FLASH_ATTN_AVAILABLE = True
 except ImportError:
     FLASH_ATTN_AVAILABLE = False
-    warnings.warn("Flash Attention not available. Используется стандартная implementation.")
+    warnings.warn("Flash Attention not available. Using standard implementation.")
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class AttentionConfig:
-    """Configuration for механизма attention."""
+    """Configuration for mechanism attention."""
     d_model: int = 512
     num_heads: int = 8
     dropout: float = 0.1
@@ -50,19 +50,19 @@ class AttentionConfig:
             self.scale_factor = self.head_dim ** -0.5
         
         if self.use_flash_attn and not FLASH_ATTN_AVAILABLE:
-            logger.warning("Flash Attention запрошен, but unavailable. Используется стандартная implementation.")
+            logger.warning("Flash Attention requested, but unavailable. Using standard implementation.")
             self.use_flash_attn = False
 
 
 class MultiHeadAttention(nn.Module):
     """
-    Multi-head механизм attention with оптимизациями for crypto trading.
+    Multi-head mechanism attention with optimizations for crypto trading.
     
     Features:
     - Scaled Dot-Product Attention
-    - Flash Attention for эффективности
-    - Поддержка causal masking
-    - Rotary Position Embeddings (опционально)
+    - Flash Attention for efficiency
+    - Support for causal masking
+    - Rotary Position Embeddings (optional)
     - Mixed precision training
     - Memory efficient attention
     """
@@ -138,7 +138,7 @@ class MultiHeadAttention(nn.Module):
         K = K.view(batch_size, -1, self.config.num_heads, self.config.head_dim)
         V = V.view(batch_size, -1, self.config.num_heads, self.config.head_dim)
         
-        # Apply rotary embeddings if включены
+        # Apply rotary embeddings if enabled
         if self.config.use_rotary_pos_emb:
             Q, K = self.rotary_emb(Q, K)
         
@@ -213,7 +213,7 @@ class MultiHeadAttention(nn.Module):
         V: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Flash Attention implementation for эффективности."""
+        """Flash Attention implementation for efficiency."""
         # Flash attention expects [batch, seq_len, num_heads, head_dim]
         output = flash_attn_func(
             Q, K, V,
@@ -233,7 +233,7 @@ class MultiHeadAttention(nn.Module):
 
 
 class RotaryPositionalEmbedding(nn.Module):
-    """Rotary Position Embeddings (RoPE) for улучшенного positional encoding."""
+    """Rotary Position Embeddings (RoPE) for improved positional encoding."""
     
     def __init__(self, head_dim: int, max_seq_len: int = 2048, base: float = 10000.0):
         super().__init__()
@@ -251,7 +251,7 @@ class RotaryPositionalEmbedding(nn.Module):
         self._cached_seq_len = 0
     
     def _compute_cos_sin(self, seq_len: int, device: torch.device, dtype: torch.dtype):
-        """Computation cosines and sines for позиций."""
+        """Compute cosines and sines for positions."""
         if seq_len > self._cached_seq_len or self._cached_cos is None:
             self._cached_seq_len = max(seq_len, self._cached_seq_len)
             
@@ -271,7 +271,7 @@ class RotaryPositionalEmbedding(nn.Module):
         )
     
     def forward(self, Q: torch.Tensor, K: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Apply RoPE to query and key тензорам."""
+        """Apply RoPE to query and key tensors."""
         seq_len = Q.shape[1]
         
         cos, sin = self._compute_cos_sin(seq_len, Q.device, Q.dtype)
@@ -283,8 +283,8 @@ class RotaryPositionalEmbedding(nn.Module):
         return Q_rotated, K_rotated
     
     def _apply_rotary_emb(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
-        """Apply rotary embedding to тензору."""
-        # Split last dimension пополам
+        """Apply rotary embedding to tensor."""
+        # Split last dimension in half
         x1, x2 = x[..., : x.shape[-1] // 2], x[..., x.shape[-1] // 2 :]
         
         # Apply rotation
@@ -321,7 +321,7 @@ class CryptoMultiHeadAttention(MultiHeadAttention):
         market_regime: Optional[torch.Tensor] = None,
         **kwargs
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        """Forward with consideration crypto-specific факторов."""
+        """Forward with consideration of crypto-specific factors."""
         output = super().forward(query, key, value, **kwargs)
         
         # Volume weighting (if available volume)
@@ -339,13 +339,13 @@ def create_attention_mask(seq_len: int, causal: bool = False) -> torch.Tensor:
     """Create attention mask."""
     if causal:
         mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
-        return ~mask  # Инвертируем for корректной маскировки
+        return ~mask  # Invert for correct masking
     else:
         return torch.ones(seq_len, seq_len).bool()
 
 
 def benchmark_attention_performance():
-    """Benchmark performance various реализаций attention."""
+    """Benchmark performance of various attention implementations."""
     import time
     
     config = AttentionConfig(d_model=512, num_heads=8)

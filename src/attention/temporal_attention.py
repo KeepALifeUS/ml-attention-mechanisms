@@ -1,5 +1,5 @@
 """
-Temporal Attention механизм for анализа temporal зависимостей in crypto trading.
+Temporal Attention mechanism for analysis of temporal dependencies in crypto trading.
 Specialized for processing time series with various temporal patterns.
 
 Production-optimized temporal attention for real-time trading decisions.
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class TemporalAttentionConfig(AttentionConfig):
-    """Configuration for Temporal Attention механизма."""
+    """Configuration for Temporal Attention mechanism."""
     # Temporal-specific parameters
     use_time_embeddings: bool = True  # Time-based embeddings
     time_embedding_dim: int = 64
@@ -113,7 +113,7 @@ class TemporalPositionalEncoding(nn.Module):
         return pe
     
     def _create_cyclical_encoding(self, cycle_length: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Create cyclical encoding (sin, cos) for заданного цикла."""
+        """Create cyclical encoding (sin, cos) for a given cycle."""
         positions = torch.arange(cycle_length, dtype=torch.float)
         angles = 2 * math.pi * positions / cycle_length
         return torch.sin(angles), torch.cos(angles)
@@ -195,7 +195,7 @@ class TemporalPositionalEncoding(nn.Module):
 
 class TemporalAttention(nn.Module):
     """
-    Temporal Attention механизм for temporal рядов in crypto trading.
+    Temporal Attention mechanism for temporal series in crypto trading.
     
     Features:
     - Multi-timeframe attention
@@ -268,7 +268,7 @@ class TemporalAttention(nn.Module):
         else:
             weights = torch.ones(max_len)
         
-        return weights.flip(0)  # Recent timesteps получают higher weights
+        return weights.flip(0)  # Recent timesteps get higher weights
     
     def forward(
         self,
@@ -374,7 +374,7 @@ class TemporalAttention(nn.Module):
         mask = torch.zeros(seq_len, seq_len, dtype=torch.bool, device=device)
         
         for i in range(seq_len):
-            # Allow attention in пределах window
+            # Allow attention in within window
             start_idx = max(0, i - window_size + 1)
             end_idx = min(seq_len, i + window_size)
             mask[i, start_idx:end_idx] = True
@@ -465,7 +465,7 @@ class CryptoTemporalAttention(TemporalAttention):
                 key=volume_data,
                 value=volume_data
             )
-            x = x + volume_temporal_output * 0.3  # Moderate влияние volume
+            x = x + volume_temporal_output * 0.3  # Moderate volume influence
         
         # News event temporal decay
         if news_timestamps is not None:
@@ -479,7 +479,7 @@ class CryptoTemporalAttention(TemporalAttention):
     def _compute_halving_cycle_features(self, timestamps: torch.Tensor) -> torch.Tensor:
         """Compute Bitcoin halving cycle features."""
         # Bitcoin halving approximately every 4 years (1461 days)
-        halving_period = 4 * 365 * 24 * 3600  # 4 years in секундах
+        halving_period = 4 * 365 * 24 * 3600  # 4 years in seconds
         
         cycle_position = (timestamps % halving_period) / halving_period
         
@@ -504,7 +504,7 @@ class CryptoTemporalAttention(TemporalAttention):
         news_timestamps: torch.Tensor
     ) -> torch.Tensor:
         """Compute temporal decay for news events."""
-        # Time since news event (in часах)
+        # Time since news event (in hours)
         time_diff = (current_timestamps - news_timestamps) / 3600
         
         # Exponential decay (news impact decreases over time)
@@ -593,7 +593,7 @@ if __name__ == "__main__":
     print(f"Crypto: {sum(p.numel() for p in crypto_temporal.parameters())}")
     
     # Memory usage test
-    print(f"\nMemory efficient test with длинной последовательностью:")
+    print(f"\nMemory efficient test with long sequence:")
     long_x = torch.randn(2, 2048, config.d_model)
     long_timestamps = torch.randint(1640995200, 1672531200, (2, 2048))
     
@@ -601,7 +601,7 @@ if __name__ == "__main__":
         long_output = temporal_attn(long_x, timestamps=long_timestamps)
         print(f"Long sequence output: {long_output.shape}")
     except RuntimeError as e:
-        print(f"Memory error with длинной последовательностью: {e}")
+        print(f"Memory error with long sequence: {e}")
         # Use smaller batch for testing
         small_long_output = temporal_attn(
             long_x[:1], timestamps=long_timestamps[:1]

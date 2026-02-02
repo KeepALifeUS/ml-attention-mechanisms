@@ -1,6 +1,6 @@
 """
 Learnable Encoding implementations for adaptive positional encoding.
-Allows model обучать optimal representations for crypto trading patterns.
+Allows the model to learn optimal representations for crypto trading patterns.
 
 Adaptive learnable encodings with curriculum learning for trading optimization.
 """
@@ -284,7 +284,7 @@ class LearnablePositionalEmbedding(nn.Module):
         hierarchy_features = []
         
         for level, embedding_layer in enumerate(self.hierarchy_embeddings):
-            # Different granularities for разных levels
+            # Different granularities for different levels
             scale = 2 ** level
             scaled_positions = (position_ids // scale).clamp(max=embedding_layer.num_embeddings - 1)
             level_embeddings = embedding_layer(scaled_positions)

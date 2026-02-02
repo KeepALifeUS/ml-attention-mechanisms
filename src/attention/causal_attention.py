@@ -1,5 +1,5 @@
 """
-Causal Attention механизм for autoregressive models in crypto trading.
+Causal Attention mechanism for autoregressive models in crypto trading.
 Ensures compliance causal constraints for real-time inference.
 
 Production causal attention for online learning in trading systems.
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CausalAttentionConfig(AttentionConfig):
-    """Configuration for Causal Attention механизма."""
+    """Configuration for Causal Attention mechanism."""
     # Causal attention is always True
     causal: bool = True
     
@@ -55,7 +55,7 @@ class CausalAttentionConfig(AttentionConfig):
 
 
 class CausalMask:
-    """Utility class for creation various causal masks."""
+    """Utility class for creating various causal masks."""
     
     @staticmethod
     def create_causal_mask(seq_len: int, device: torch.device) -> torch.Tensor:
@@ -141,7 +141,7 @@ class KVCache:
         self.current_len = 0
     
     def update(self, keys: torch.Tensor, values: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Update cache with новыми keys/values and return full cached sequences."""
+        """Update cache with new keys/values and return full cached sequences."""
         seq_len = keys.shape[2]
         
         if self.current_len + seq_len > self.max_len:
@@ -176,7 +176,7 @@ class KVCache:
 
 class CausalAttention(nn.Module):
     """
-    Causal Attention механизм for autoregressive models.
+    Causal Attention mechanism for autoregressive models.
     
     Features:
     - Strict causal masking (no future information leakage)
@@ -376,7 +376,7 @@ class CausalAttention(nn.Module):
         with torch.no_grad():
             # Forward pass with cache
             output, self.kv_cache = self.forward(
-                current_sequence[:, -1:],  # Only процесс last token
+                current_sequence[:, -1:],  # Only process last token
                 use_cache=True,
                 past_key_values=self.kv_cache
             )
@@ -436,7 +436,7 @@ class CryptoCausalAttention(CausalAttention):
         
         # Price movement causality
         self.price_causality_weights = nn.Parameter(
-            torch.linspace(1.0, 0.1, config.max_seq_len)  # Recent prices have more влияние
+            torch.linspace(1.0, 0.1, config.max_seq_len)  # Recent prices have more influence
         )
         
         # Risk-aware causal masking
@@ -499,7 +499,7 @@ class CryptoCausalAttention(CausalAttention):
         """Create mask ensuring order causality."""
         batch_size, seq_len = order_timestamps.shape
         
-        # Create mask где order timestamp <= execution timestamp
+        # Create mask where order timestamp <= execution timestamp
         causality_mask = order_timestamps.unsqueeze(-1) <= execution_timestamps.unsqueeze(-2)
         
         return causality_mask.float()

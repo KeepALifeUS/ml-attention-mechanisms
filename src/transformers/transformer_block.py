@@ -1,5 +1,5 @@
 """
-Transformer Block implementation with оптимизациями for crypto trading ML models.
+Transformer Block implementation with optimizations for crypto trading ML models.
 Includes encoder/decoder blocks with advanced normalization and residual connections.
 
 Production-ready transformer blocks with memory efficiency and optimization.
@@ -594,7 +594,7 @@ class CryptoTransformerBlock(TransformerEncoderBlock):
             adapted = self.regime_adapters[regime_id](x)
             regime_adapted += adapted * mask
         
-        x = x + regime_adapted * 0.1  # Small влияние
+        x = x + regime_adapted * 0.1  # Small influence
         
         # Volume-price fusion
         if volume_data is not None:
