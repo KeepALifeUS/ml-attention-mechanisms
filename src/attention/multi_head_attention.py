@@ -2,7 +2,7 @@
 Многоголовочный механизм внимания для крипто-торговых ML моделей.
 Оптимизированная реализация Scaled Dot-Product Attention с поддержкой Flash Attention.
 
-Context7: Enterprise-grade архитектура с production optimizations для HFT.
+Enterprise-grade архитектура с production optimizations для HFT.
 """
 
 import math

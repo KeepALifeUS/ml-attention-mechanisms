@@ -3,7 +3,7 @@ Crypto-specific attention models для различных trading tasks.
 Объединяет attention mechanisms в ready-to-use модели для price prediction, 
 signal generation, risk assessment и portfolio optimization.
 
-Context7: Production attention models с pre-trained checkpoints и deployment optimization.
+Production attention models с pre-trained checkpoints и deployment optimization.
 """
 
 import math

@@ -2,7 +2,7 @@
 Visualization utilities для attention mechanisms в crypto trading models.
 Создает heatmaps, attention flow diagrams и interactive visualizations.
 
-Context7: Production visualization tools для attention analysis и model debugging.
+Production visualization tools для attention analysis и model debugging.
 """
 
 import math

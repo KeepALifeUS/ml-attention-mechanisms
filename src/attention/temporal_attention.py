@@ -2,7 +2,7 @@
 Temporal Attention механизм для анализа временных зависимостей в крипто-торговле.
 Специализирован для обработки временных рядов с различными временными паттернами.
 
-Context7: Production-optimized temporal attention для real-time trading decisions.
+Production-optimized temporal attention для real-time trading decisions.
 """
 
 import math

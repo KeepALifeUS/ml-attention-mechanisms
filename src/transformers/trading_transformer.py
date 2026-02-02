@@ -2,7 +2,7 @@
 Trading Transformer архитектура специально разработанная для крипто-торговых задач.
 Объединяет attention mechanisms с domain-specific optimizations для financial time series.
 
-Context7: Production trading transformer с real-time inference и risk management.
+Production trading transformer с real-time inference и risk management.
 """
 
 import math

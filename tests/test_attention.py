@@ -2,7 +2,7 @@
 Comprehensive test suite для attention mechanisms package.
 Покрывает все attention implementations, encodings, transformers и utility functions.
 
-Context7: Production-grade testing с performance benchmarks и edge case coverage.
+Production-grade testing с performance benchmarks и edge case coverage.
 """
 
 import pytest

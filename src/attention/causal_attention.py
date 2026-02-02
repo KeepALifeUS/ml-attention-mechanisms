@@ -2,7 +2,7 @@
 Causal Attention механизм для autoregressive моделей в крипто-торговле.
 Обеспечивает соблюдение causal constraints для real-time inference.
 
-Context7: Production causal attention для online learning в trading systems.
+Production causal attention для online learning в trading systems.
 """
 
 import math

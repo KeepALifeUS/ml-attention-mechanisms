@@ -5,7 +5,7 @@ Comprehensive attention mechanisms library optimized for crypto trading applicat
 Includes multi-head attention, self-attention, cross-attention, temporal attention,
 positional encodings, transformer blocks, and crypto-specific models.
 
-Context7: Enterprise-grade attention mechanisms с production optimizations.
+Enterprise-grade attention mechanisms с production optimizations.
 """
 
 __version__ = "1.0.0"
@@ -242,7 +242,7 @@ PACKAGE_INFO = {
     "framework": "PyTorch",
     "domain": "Financial Machine Learning",
     "specialization": "Cryptocurrency Trading",
-    "architecture": "Context7 Enterprise"
+    "architecture": "enterprise"
 }
 
 def get_package_info():
@@ -289,7 +289,7 @@ def print_package_summary():
 ║    • Debugging & Monitoring Tools                                            ║
 ║                                                                              ║
 ║  📊 Features:                                                                ║
-║    ✓ Context7 Enterprise Architecture                                        ║
+║    ✓ enterprise architecture                                        ║
 ║    ✓ Production-Ready Implementations                                        ║
 ║    ✓ Memory-Efficient Attention                                              ║
 ║    ✓ Real-Time Inference Optimized                                          ║

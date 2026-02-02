@@ -2,7 +2,7 @@
 Positional Encoding реализации для transformer архитектур в крипто-торговле.
 Включает sinusoidal, learned, relative и другие варианты позиционного кодирования.
 
-Context7: Production-ready positional encodings с efficiency optimizations.
+Production-ready positional encodings с efficiency optimizations.
 """
 
 import math

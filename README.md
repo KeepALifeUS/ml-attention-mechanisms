@@ -4,11 +4,10 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/pytorch-2.1%2B-orange.svg)](https://pytorch.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Context7](https://img.shields.io/badge/architecture-Context7-purple.svg)](https://context7.ai)
 
 > **Enterprise-grade attention mechanisms for crypto trading ML models**
 
-Comprehensive attention mechanisms library specifically designed for cryptocurrency trading applications. Built with Context7 enterprise architecture principles and production-ready optimizations for high-frequency trading systems.
+Comprehensive attention mechanisms library specifically designed for cryptocurrency trading applications. Built with  enterprise architecture principles and production-ready optimizations for high-frequency trading systems.
 
 ## 🚀 Features
 
@@ -667,7 +666,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **Context7 Framework** - Enterprise architecture patterns
+- **enterprise framework** - Enterprise architecture patterns
 - **Flash Attention** - Memory-efficient attention implementation
 - **PyTorch Team** - Deep learning framework
 - **Crypto Trading Community** - Domain expertise and feedback

@@ -2,7 +2,7 @@
 Learnable Encoding реализации для адаптивного позиционного кодирования.
 Позволяет модели обучать оптимальные representations для crypto trading patterns.
 
-Context7: Adaptive learnable encodings с curriculum learning для trading optimization.
+Adaptive learnable encodings с curriculum learning для trading optimization.
 """
 
 import math

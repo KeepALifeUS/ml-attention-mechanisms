@@ -2,7 +2,7 @@
 Cross-Attention механизм для мульти-модального анализа в крипто-торговле.
 Позволяет моделям учитывать взаимодействия между различными источниками данных.
 
-Context7: Enterprise cross-attention для fusion of multi-modal financial data.
+Enterprise cross-attention для fusion of multi-modal financial data.
 """
 
 import math

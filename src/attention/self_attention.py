@@ -2,7 +2,7 @@
 Self-Attention механизм для временных рядов в крипто-торговле.
 Оптимизированная реализация для sequence modeling с поддержкой temporal patterns.
 
-Context7: Production-ready self-attention с memory efficiency и real-time inference.
+Production-ready self-attention с memory efficiency и real-time inference.
 """
 
 import math

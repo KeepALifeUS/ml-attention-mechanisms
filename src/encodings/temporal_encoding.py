@@ -2,7 +2,7 @@
 Temporal Encoding специализированные для временных рядов в крипто-торговле.
 Учитывает цикличность рынков, временные зоны и паттерны торговой активности.
 
-Context7: Production temporal encodings для real-time trading systems.
+Production temporal encodings для real-time trading systems.
 """
 
 import math

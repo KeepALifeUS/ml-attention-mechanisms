@@ -2,7 +2,7 @@
 Transformer Block реализация с оптимизациями для крипто-торговых ML моделей.
 Включает encoder/decoder blocks с advanced normalization и residual connections.
 
-Context7: Production-ready transformer blocks с memory efficiency и optimization.
+Production-ready transformer blocks с memory efficiency и optimization.
 """
 
 import math

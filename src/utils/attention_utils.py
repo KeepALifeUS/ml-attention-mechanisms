@@ -2,7 +2,7 @@
 Attention utilities для analysis, optimization и debugging attention mechanisms.
 Включает performance profiling, attention pattern analysis и memory optimization.
 
-Context7: Production utilities для attention mechanism monitoring и optimization.
+Production utilities для attention mechanism monitoring и optimization.
 """
 
 import math
