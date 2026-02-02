@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ctb3-ml-attention-mechanisms"
+name = "ml-attention-mechanisms"
 version = "1.0.0"
 description = "Enterprise Attention Mechanisms for Crypto Trading Bot v5.0 - High-performance transformer architectures"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
-    {name = "CTB3 Team", email = "team@ctb3.io"}
+    {name = "ML Team", email = "team@example.com"}
 ]
 keywords = [
     "attention-mechanisms", "transformers", "crypto", "trading", 
