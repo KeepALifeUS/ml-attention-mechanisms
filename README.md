@@ -687,3 +687,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 [Documentation](https://docs.ml-framework.io) • [Examples](./examples) • [API Reference](https://api.ml-framework.io) • [Changelog](CHANGELOG.md)
 
 </div>
+
+## Support
+
+For questions and support, please open an issue on GitHub.
